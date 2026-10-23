@@ -36,8 +36,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid #d28a45; outline-offs
 }
 .header-leaf { position: absolute; top: 0; left: 0; z-index: -1; width: clamp(76px, calc((100vw - 1160px) / 2 - 8px), 150px); height: auto; pointer-events: none; user-select: none; -webkit-mask-image: linear-gradient(180deg, #000 55%, transparent 100%), linear-gradient(90deg, #000 62%, transparent 100%); -webkit-mask-composite: source-in; mask-image: linear-gradient(180deg, #000 55%, transparent 100%), linear-gradient(90deg, #000 62%, transparent 100%); mask-composite: intersect; }
 .brand { display: inline-flex; align-items: center; gap: 9px; flex-shrink: 0; color: var(--rust); }
-.brand-mark { width: 52px; height: 58px; display: grid; place-items: center; overflow: hidden; }
-.brand-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.brand-mark { width: 52px; height: 46px; display: grid; place-items: center; overflow: hidden; }
+.brand-mark svg { display: block; width: 100%; height: auto; }
 .brand-copy { display: flex; flex-direction: column; gap: 2px; }
 .brand-name { font-family: var(--serif); font-size: 19px; line-height: 1; text-transform: uppercase; letter-spacing: .025em; }
 .brand-subtitle { font-size: 8px; text-transform: uppercase; letter-spacing: .11em; }
@@ -102,7 +102,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #d28a45; outline-offs
 .course-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
 .course-card { border-radius: 10px; overflow: hidden; background: #fffaf2; box-shadow: 0 6px 18px rgba(95, 55, 18, .07); }
 .course-image-wrap { height: 142px; position: relative; }
-.course-image-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.course-image-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: 62% 30%; display: block; }
 .level-tag { position: absolute; left: 12px; bottom: -10px; padding: 5px 11px; border-radius: 20px; background: #f5e5ce; font: 500 10px var(--serif); }
 .course-body { padding: 16px 15px 14px; }
 .course-body h3 { margin: 0 0 7px; font: 500 17px/1.3 var(--serif); }
@@ -113,7 +113,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #d28a45; outline-offs
 .course-link { display: none; align-items: center; gap: 5px; margin-top: 12px; padding: 0; border: 0; color: var(--rust); background: transparent; font-size: 11px; font-weight: 700; }
 .course-card:hover .course-link, .course-link:focus-visible { display: flex; }
 
-.testimonial { min-height: 230px; display: grid; place-items: center; color: #fff3dc; text-align: center; background: linear-gradient(90deg, rgba(46,36,16,.58), rgba(76,42,17,.78)), url("https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=2000&q=85") center 46%/cover; }
+.testimonial { min-height: 230px; display: grid; place-items: center; color: #fff3dc; text-align: center; background: linear-gradient(90deg, rgba(40, 22, 8, .1) 0, rgba(40, 22, 8, .5) 34%, rgba(40, 22, 8, .5) 66%, rgba(40, 22, 8, .25) 100%), url("/testimonial-bg.jpg") center 72% / cover no-repeat; }
 .testimonial-inner { width: min(590px, calc(100% - 40px)); padding: 25px 0; }
 .quote-mark { height: 31px; display: block; color: #eac385; font: 700 48px/1 var(--serif); }
 .testimonial blockquote { margin: 4px 0 14px; font: italic 500 19px/1.5 var(--serif); }
@@ -122,26 +122,27 @@ button:focus-visible, a:focus-visible { outline: 3px solid #d28a45; outline-offs
 .quote-dots span { width: 6px; height: 6px; border-radius: 50%; background: #dfa852; }
 .quote-dots span:not(:first-child) { opacity: .55; }
 
-.community { min-height: 120px; display: flex; align-items: center; gap: 25px; padding-top: 20px; padding-bottom: 20px; }
+.community-band { position: relative; overflow: hidden; background: linear-gradient(90deg, #fdeed9, #fce6c8 44%, #feeed4); }
+.community-band::before { content: ""; position: absolute; top: 0; right: 0; width: 56%; aspect-ratio: 3 / 1; background: url("/community-bg.jpg") center / 100% 100% no-repeat; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 28%); mask-image: linear-gradient(90deg, transparent 0, #000 28%); pointer-events: none; }
+.community { position: relative; z-index: 1; min-height: 120px; display: flex; align-items: center; gap: 25px; padding-top: 20px; padding-bottom: 20px; }
 .community-icon { color: var(--rust); }
 .community-copy { flex: 1; }
 .community h2 { font-size: 23px; }
 .community-copy p { margin: 6px 0 0; color: #645d50; font-size: 12px; line-height: 1.5; max-width: 600px; }
 .community > .button { min-width: 170px; }
 
-.site-footer { position: relative; isolation: isolate; overflow: hidden; background: #36371f; color: #f7ebd4; }
-.site-footer::before { content: ""; position: absolute; z-index: -1; inset: 0; background: url("/autumn-frame.png") center bottom / 100% 100% no-repeat; opacity: .88; pointer-events: none; }
-.footer-main { min-height: 143px; padding-top: 27px; padding-bottom: 25px; display: grid; grid-template-columns: 1.6fr .55fr .75fr 1fr; align-items: center; gap: 35px; }
-.footer-brand { display: flex; align-items: center; gap: 10px; color: #f1dfba; font: 500 17px var(--serif); text-transform: uppercase; }
-.footer-brand small { display: block; margin-top: 4px; font: 400 8px "DM Sans", sans-serif; letter-spacing: .12em; }
-.footer-logo { display: block; width: 72px; height: 75px; overflow: hidden; border-radius: 8px; }
-.footer-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
-.footer-links { display: grid; gap: 10px; font-size: 10px; }
+.site-footer { position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; min-height: 14vw; background: #2e3817 url("/footer-bg.jpg") left bottom / auto 100% no-repeat; color: #f7ebd4; text-shadow: 0 1px 6px rgba(20, 26, 10, .75); padding-bottom: 20px; }
+.footer-main { width: min(1160px, calc(100% - 64px)); margin-inline: auto; padding-top: 34px; padding-bottom: 30px; display: grid; grid-template-columns: 1.6fr .55fr .75fr 1fr; align-items: center; gap: 35px; }
+.footer-brand { display: flex; flex-direction: column; align-items: center; justify-self: start; gap: 8px; text-align: center; color: #f1dfba; font: 500 28px/1.1 var(--serif); letter-spacing: .03em; text-transform: uppercase; }
+.footer-brand small { display: block; margin-top: 6px; font: 400 11px "DM Sans", sans-serif; letter-spacing: .14em; }
+.footer-logo { display: block; width: 72px; height: 62px; }
+.footer-logo svg { display: block; width: 100%; height: 100%; }
+.footer-links { display: grid; gap: 14px; font-size: 15px; }
 .footer-links a:hover { color: #e9b578; }
-.footer-social { justify-self: end; font-size: 11px; }
-.social-icons { display: flex; gap: 10px; margin-top: 12px; }
-.social-icons a { width: 23px; height: 23px; border-radius: 50%; background: #f0e3c8; color: #44432a; display: grid; place-items: center; font-size: 11px; font-weight: 700; }
-.footer-bottom { border-top: 1px solid rgba(239, 222, 189, .35); min-height: 45px; display: flex; align-items: center; justify-content: space-between; font-size: 9px; }
+.footer-social { justify-self: end; font-size: 16px; }
+.social-icons { display: flex; gap: 12px; margin-top: 14px; }
+.social-icons a { width: 36px; height: 36px; border-radius: 50%; background: #f0e3c8; color: #44432a; display: grid; place-items: center; font-size: 15px; font-weight: 700; }
+.footer-bottom { border-top: 1px solid rgba(239, 222, 189, .35); min-height: 56px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
 .footer-bottom b { color: #d89a58; padding: 0 6px; }
 .back-to-top { display: none; }
 
@@ -163,7 +164,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #d28a45; outline-offs
   .section-wrap { width: min(100% - 36px, 520px); }
   .site-header { height: 68px; padding: 0 18px 0 74px; }
   .header-leaf { width: 62px; }
-  .brand-mark { width: 44px; height: 48px; }
+  .brand-mark { width: 44px; height: 40px; }
   .brand-name { font-size: 15px; }
   .brand-subtitle { font-size: 7px; }
   .menu-toggle { display: grid; place-items: center; margin-left: auto; }
@@ -205,15 +206,18 @@ button:focus-visible, a:focus-visible { outline: 3px solid #d28a45; outline-offs
   .course-link { display: flex; }
   .testimonial { min-height: 245px; }
   .testimonial blockquote { font-size: 17px; }
+  .community-band::before { width: 92%; }
   .community { min-height: 170px; display: grid; grid-template-columns: 42px 1fr; gap: 10px 14px; }
   .community-icon svg { width: 34px; }
   .community h2 { font-size: 20px; }
   .community-copy p { font-size: 11px; }
   .community > .button { grid-column: 2; justify-self: start; min-height: 40px; }
-  .footer-main { grid-template-columns: 1fr 1fr; gap: 25px 16px; padding-top: 28px; }
-  .footer-brand { font-size: 15px; }
+  .site-footer { min-height: 0; background-position: -20px bottom; background-size: auto 55%; }
+  .footer-main { width: min(100% - 36px, 520px); grid-template-columns: 1fr 1fr; gap: 25px 16px; padding-top: 28px; }
+  .footer-links { font-size: 14px; }
+  .footer-brand { font-size: 24px; }
   .footer-social { justify-self: start; }
-  .footer-bottom { padding-block: 12px; gap: 8px; align-items: flex-start; flex-direction: column; font-size: 8px; }
+  .footer-bottom { padding-block: 12px; gap: 8px; align-items: flex-start; flex-direction: column; font-size: 12px; }
   .auth-notice { left: 12px; right: 12px; top: 76px; }
 }
 

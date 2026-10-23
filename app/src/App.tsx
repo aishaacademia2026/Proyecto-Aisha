@@ -61,9 +61,8 @@ const courses = [
     description: "Aprende a identificar tus señales, explora tu intuición y comienza tu camino.",
     lessons: 4,
     duration: "3 h",
-    image:
-      "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=900&q=85",
-    imageAlt: "Amanecer cálido sobre las montañas",
+    image: "/course-sensibilidad.jpg",
+    imageAlt: "Mujer con los ojos cerrados respirando al atardecer entre hojas de otoño",
   },
   {
     level: "Intermedio",
@@ -86,6 +85,20 @@ const courses = [
     imageAlt: "Sendero rodeado de árboles en tonos otoñales",
   },
 ];
+
+function LotusIcon() {
+  return (
+    <svg viewBox="0 0 64 54" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M32 4C25 13 24 26 32 39C40 26 39 13 32 4Z" />
+      <path d="M32 39C24 36 17 28 16 16C25 18 31 26 32 39Z" />
+      <path d="M32 39C40 36 47 28 48 16C39 18 33 26 32 39Z" />
+      <path d="M32 40C22 40 11 35 6 24C16 23 26 28 32 40Z" />
+      <path d="M32 40C42 40 53 35 58 24C48 23 38 28 32 40Z" />
+      <path d="M32 41C25 45 15 46 8 42C16 39 26 38 32 41Z" />
+      <path d="M32 41C39 45 49 46 56 42C48 39 38 38 32 41Z" />
+    </svg>
+  );
+}
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -144,7 +157,7 @@ function App() {
         <img className="header-leaf header-leaf-left" src="/leaf-corner.png" alt="" aria-hidden="true" />
         <a className="brand" href="#inicio" aria-label="AISHA, inicio">
           <span className="brand-mark">
-            <img src="/aisha-mark.png" alt="" />
+            <LotusIcon />
           </span>
           <span className="brand-copy">
             <span className="brand-name">AISHA</span>
@@ -289,7 +302,8 @@ function App() {
           </div>
         </section>
 
-        <section className="community section-wrap" id="comunidad">
+        <section className="community-band" id="comunidad">
+          <div className="community section-wrap">
           <div className="community-icon"><UsersRound size={38} strokeWidth={1.4} /></div>
           <div className="community-copy">
             <h2>Únete a nuestra comunidad</h2>
@@ -298,13 +312,14 @@ function App() {
           <button className="button" onClick={signInWithGoogle} type="button">
             Quiero unirme <ArrowRight size={16} />
           </button>
+        </div>
         </section>
       </main>
 
       <footer className="site-footer">
         <div className="footer-main section-wrap">
           <a className="footer-brand" href="#inicio">
-            <span className="footer-logo"><img src="/aisha-mark.png" alt="" /></span>
+            <span className="footer-logo"><LotusIcon /></span>
             <span>AISHA<small>Academia de mediumnidad</small></span>
           </a>
           <div className="footer-links">

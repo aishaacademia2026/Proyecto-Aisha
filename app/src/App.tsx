@@ -141,6 +141,7 @@ function App() {
   return (
     <>
       <header className="site-header">
+        <img className="header-leaf header-leaf-left" src="/leaf-corner.png" alt="" aria-hidden="true" />
         <a className="brand" href="#inicio" aria-label="AISHA, inicio">
           <span className="brand-mark">
             <img src="/aisha-mark.png" alt="" />
@@ -165,7 +166,6 @@ function App() {
           <a className="active" href="#inicio" onClick={() => setMenuOpen(false)}>Inicio</a>
           <a href="#nosotros" onClick={() => setMenuOpen(false)}>Nosotros</a>
           <a href="#cursos" onClick={() => setMenuOpen(false)}>Cursos</a>
-          <a href="#comunidad" onClick={() => setMenuOpen(false)}>Blog</a>
           <a href="#comunidad" onClick={() => setMenuOpen(false)}>Comunidad</a>
         </nav>
 
@@ -203,20 +203,23 @@ function App() {
 
       <main>
         <section className="hero" id="inicio">
-          <h1 className="sr-only">Descubre tu sensibilidad, aprende a comprenderla</h1>
-          <p className="sr-only">
-            Un espacio seguro y consciente para explorar tus dones psíquicos,
-            desarrollar tu intuición y aprender a integrar la mediumnidad en tu vida.
-          </p>
           <img
             className="hero-banner"
-            src="/hero-banner.png"
-            alt=""
+            src="/hero-bg.jpg"
+            alt="Atardecer otoñal entre montañas, con la fundadora de AISHA sonriendo"
             fetchPriority="high"
           />
-          <a className="hero-cta-link" href="#cursos" aria-label="Explora nuestros cursos">
-            <span className="sr-only">Explora nuestros cursos</span>
-          </a>
+          <div className="hero-copy">
+            <p className="eyebrow">Academia online de mediumnidad</p>
+            <h1>Descubre tu sensibilidad,<br />aprende a <em>comprenderla</em></h1>
+            <p className="hero-description">
+              Un espacio seguro y consciente para explorar tus dones psíquicos,
+              desarrollar tu intuición y aprender a integrar la mediumnidad en tu vida.
+            </p>
+            <a className="button" href="#cursos">
+              Explora nuestros cursos <ArrowRight size={16} />
+            </a>
+          </div>
         </section>
 
         <section className="categories section-wrap" id="nosotros">

@@ -256,7 +256,7 @@ function App() {
           <div className="courses-layout section-wrap">
             <div className="courses-intro">
               <p className="eyebrow">Cursos destacados</p>
-              <h2>Tu formación,<br />paso a paso</h2>
+              <h2>Tu formación,{" "}<br />paso a paso</h2>
               <p>
                 Programas diseñados para acompañarte en cada etapa de tu camino.
                 Desde los primeros pasos hasta un nivel avanzado de desarrollo.
@@ -335,7 +335,7 @@ function App() {
           <div className="footer-social">
             <span>Síguenos</span>
             <div className="social-icons" aria-label="Redes sociales">
-              <a href="https://instagram.com" aria-label="Instagram">ig</a>
+              <a href="https://www.instagram.com/diosa_aisha/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">ig</a>
               <a href="https://facebook.com" aria-label="Facebook">f</a>
               <a href="https://youtube.com" aria-label="YouTube">▶</a>
               <a href="https://pinterest.com" aria-label="Pinterest">p</a>

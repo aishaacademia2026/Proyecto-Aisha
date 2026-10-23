@@ -1,0 +1,36 @@
+# dependencias y builds
+node_modules/
+dist/
+build/
+
+# variables de entorno y credenciales
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+secrets/
+credentials*.json
+service-account*.json
+serviceAccount*.json
+supabase/.temp/
+supabase/.branches/
+
+# herramientas y editores
+.claude/
+.vscode/
+.idea/
+
+# logs y temporales
+*.log
+npm-debug.log*
+*.tmp
+.cache/
+
+# sistema operativo
+.DS_Store
+Thumbs.db
+Desktop.ini

@@ -102,7 +102,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #d28a45; outline-offs
 .course-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
 .course-card { border-radius: 10px; overflow: hidden; background: #fffaf2; box-shadow: 0 6px 18px rgba(95, 55, 18, .07); }
 .course-image-wrap { height: 142px; position: relative; }
-.course-image-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: 62% 30%; display: block; }
+.course-image-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: 62% 40%; display: block; }
 .level-tag { position: absolute; left: 12px; bottom: -10px; padding: 5px 11px; border-radius: 20px; background: #f5e5ce; font: 500 10px var(--serif); }
 .course-body { padding: 16px 15px 14px; }
 .course-body h3 { margin: 0 0 7px; font: 500 17px/1.3 var(--serif); }

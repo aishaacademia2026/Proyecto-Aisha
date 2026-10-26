@@ -70,9 +70,8 @@ const courses = [
     description: "Ejercicios prácticos para fortalecer tu intuición y ampliar tu percepción.",
     lessons: 6,
     duration: "5 h",
-    image:
-      "https://images.unsplash.com/photo-1603006905003-be475563bc59?auto=format&fit=crop&w=900&q=85",
-    imageAlt: "Vela encendida en un espacio tranquilo",
+    image: "/course-percepcion.jpg",
+    imageAlt: "Vela encendida junto a cristales y un diario al atardecer",
   },
   {
     level: "Avanzado",
@@ -80,9 +79,8 @@ const courses = [
     description: "Integra tus experiencias y aprende a mantener el equilibrio.",
     lessons: 8,
     duration: "7 h",
-    image:
-      "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=900&q=85",
-    imageAlt: "Sendero rodeado de árboles en tonos otoñales",
+    image: "/course-mediumnidad.jpg",
+    imageAlt: "Sendero iluminado por el sol entre árboles con hojas de otoño",
   },
 ];
 

@@ -1,17 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
   ArrowRight,
   ArrowUp,
   BookOpen,
   Clock3,
+  Facebook,
+  Flower2,
   GraduationCap,
+  HandHeart,
   Heart,
+  Instagram,
+  Leaf,
   Menu,
+  MessageCircle,
+  Plus,
   Sparkles,
   Sprout,
   UsersRound,
   X,
+  Youtube,
 } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
 
@@ -98,11 +106,294 @@ function LotusIcon() {
   );
 }
 
+const essence = [
+  { icon: Flower2, title: "Autoconocimiento" },
+  { icon: BookOpen, title: "Aprendizaje consciente" },
+  { icon: HandHeart, title: "Acompañamiento cercano" },
+];
+
+function AboutPage() {
+  return (
+    <div className="about-page">
+      <section className="about-main section-wrap">
+        <figure className="about-photo">
+          <img
+            src="/conocenos-foto.jpg"
+            alt="Aisha sonriendo entre hojas de otoño, con la mano sobre el corazón"
+            fetchPriority="high"
+          />
+          <figcaption>
+            <span>“Un espacio para descubrirte”</span>
+            <Leaf size={22} strokeWidth={1.3} aria-hidden="true" />
+          </figcaption>
+        </figure>
+
+        <div className="about-copy">
+          <img className="about-logo" src="/aisha-logo.png" alt="Logo de Aisha, academia online de mediumnidad" />
+          <h1>
+            <span>Un viaje hacia tu interior,</span> <span>a tu propio ritmo</span>
+          </h1>
+          <span className="about-divider" aria-hidden="true" />
+          <p>
+            Hay momentos en la vida en los que sentimos que queremos comprendernos mejor,
+            escuchar nuestra intuición y descubrir esa sensibilidad que nos hace únicos.
+          </p>
+          <p>
+            <strong>En Aisha, encontrarás un espacio para explorar, aprender y crecer desde el corazón.</strong>{" "}
+            Te acompañamos en el camino de descubrir tu sensibilidad psíquica y acercarte a la
+            mediumnidad a través de cursos, ejercicios prácticos y experiencias de aprendizaje,
+            siempre desde el respeto, la conciencia y el equilibrio.
+          </p>
+          <a
+            className="button"
+            href="#esencia"
+            onClick={(event) => {
+              event.preventDefault();
+              document.getElementById("esencia")?.scrollIntoView({ behavior: "smooth" });
+            }}
+          >
+            Conoce nuestra esencia <ArrowRight size={16} />
+          </a>
+        </div>
+      </section>
+
+      <section className="about-essence section-wrap" id="esencia">
+        <h2>
+          <Leaf className="about-essence-leaf" size={26} strokeWidth={1.2} aria-hidden="true" />
+          <span>Un camino que recorremos contigo</span>
+        </h2>
+        <div className="about-cards">
+          {essence.map(({ icon: Icon, title }) => (
+            <article className="about-card" key={title}>
+              <Icon size={46} strokeWidth={1} />
+              <h3>{title}</h3>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="about-band">
+        <p>
+          <span className="about-band-line" aria-hidden="true" />
+          <em>No necesitas tener todas las respuestas. Solo darte la oportunidad de comenzar.</em>
+          <span className="about-band-line" aria-hidden="true" />
+        </p>
+      </section>
+    </div>
+  );
+}
+
+const faqs = [
+  {
+    question: "¿Necesito experiencia previa para empezar?",
+    answer: "No. Nuestros cursos de nivel inicial están pensados para quienes recién comienzan a reconocer su sensibilidad. Avanzas a tu propio ritmo.",
+  },
+  {
+    question: "¿Cómo sé qué curso es el adecuado para mí?",
+    answer: "Escríbenos contándonos un poco de tu experiencia y te orientaremos personalmente hacia el programa que mejor acompañe tu momento.",
+  },
+  {
+    question: "¿Lo que comparto es confidencial?",
+    answer: "Sí. Todo lo que nos cuentas se trata con respeto y discreción, y nunca se comparte con terceros.",
+  },
+];
+
+const contactTopics = [
+  "Quiero saber qué curso es para mí",
+  "Dudas sobre inscripción y pagos",
+  "Acompañamiento personal",
+  "Comunidad y encuentros en directo",
+  "Otro motivo",
+];
+
+const WHATSAPP_NUMBER = "447771620333";
+
+function ContactPage() {
+  const [sent, setSent] = useState(false);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const text = [
+      `Hola, soy ${data.get("nombre")} (${data.get("email")}).`,
+      `Motivo: ${data.get("motivo")}`,
+      "",
+      String(data.get("mensaje")),
+    ].join("\n");
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
+    setSent(true);
+  }
+
+  return (
+    <div className="contact-page">
+      <section className="contact-hero">
+        <div className="contact-hero-inner">
+          <Leaf size={44} strokeWidth={1.2} aria-hidden="true" />
+          <p className="eyebrow">Contacto</p>
+          <h1>Hablemos, <em>sin prisa</em></h1>
+          <span className="contact-divider" aria-hidden="true" />
+          <p>
+            Si tienes una duda sobre los cursos, quieres contarnos tu experiencia o simplemente no sabes
+            por dónde empezar, escríbenos. Leemos cada mensaje con atención y te respondemos personalmente.
+          </p>
+        </div>
+      </section>
+
+      <section className="contact-main">
+        <div className="contact-grid">
+          <div className="contact-card contact-form-card">
+            {sent ? (
+              <div className="contact-sent" role="status">
+                <Flower2 size={56} strokeWidth={1.1} aria-hidden="true" />
+                <h2>Continúa en WhatsApp</h2>
+                <p>
+                  Abrimos WhatsApp con tu mensaje listo. Solo debes enviarlo y te responderemos
+                  personalmente. Mientras tanto, respira y date permiso para seguir explorando.
+                </p>
+                <button className="button button-outline" type="button" onClick={() => setSent(false)}>
+                  Escribir otro mensaje
+                </button>
+              </div>
+            ) : (
+              <>
+                <h2>Escríbenos</h2>
+                <p className="contact-lead">Cuéntanos lo que necesites. Tu mensaje se envía por WhatsApp y te respondemos personalmente.</p>
+                <form className="contact-form" onSubmit={handleSubmit}>
+                  <div className="field">
+                    <label htmlFor="c-nombre">Nombre</label>
+                    <input id="c-nombre" name="nombre" type="text" placeholder="¿Cómo te llamas?" required autoComplete="name" />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="c-email">Correo electrónico</label>
+                    <input id="c-email" name="email" type="email" placeholder="tu@correo.com" required autoComplete="email" />
+                  </div>
+                  <div className="field field-wide">
+                    <label htmlFor="c-motivo">¿Sobre qué quieres hablarnos?</label>
+                    <select id="c-motivo" name="motivo" defaultValue={contactTopics[0]}>
+                      {contactTopics.map((topic) => <option key={topic}>{topic}</option>)}
+                    </select>
+                  </div>
+                  <div className="field field-wide">
+                    <label htmlFor="c-mensaje">Tu mensaje</label>
+                    <textarea id="c-mensaje" name="mensaje" rows={6} placeholder="Escribe con libertad, este es un espacio seguro." required />
+                  </div>
+                  <div className="field-wide contact-consent">
+                    <input id="c-priv" type="checkbox" required />
+                    <label htmlFor="c-priv">Acepto que usen estos datos para responderme. Se tratan con total confidencialidad.</label>
+                  </div>
+                  <div className="field-wide contact-actions">
+                    <button className="button" type="submit">
+                      Enviar mensaje <ArrowRight size={16} />
+                    </button>
+                    <span className="contact-thanks">Gracias por confiar en nosotras.</span>
+                  </div>
+                </form>
+              </>
+            )}
+          </div>
+
+          <aside className="contact-side">
+            <figure className="contact-photo">
+              <img src="/conocenos-foto.jpg" alt="Aisha sonriendo entre hojas de otoño" loading="lazy" />
+              <figcaption>“Un espacio para escucharte”</figcaption>
+            </figure>
+
+            <div className="contact-card contact-ways">
+              <h2>Otras formas de encontrarnos</h2>
+              <div className="contact-way">
+                <span className="contact-way-icon"><MessageCircle size={20} strokeWidth={1.6} aria-hidden="true" /></span>
+                <div>
+                  <span className="contact-way-label">WhatsApp</span>
+                  <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer">+44 7771 620333</a>
+                </div>
+              </div>
+              <div className="contact-way">
+                <span className="contact-way-icon"><Instagram size={20} strokeWidth={1.6} aria-hidden="true" /></span>
+                <div>
+                  <span className="contact-way-label">Instagram</span>
+                  <a href="https://www.instagram.com/diosa_aisha/" target="_blank" rel="noopener noreferrer">@diosa_aisha</a>
+                </div>
+              </div>
+              <hr />
+              <div className="contact-follow">
+                <span>Síguenos</span>
+                <div>
+                  <a href="https://www.instagram.com/diosa_aisha/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><Instagram size={18} strokeWidth={1.6} /></a>
+                  <a href="https://youtube.com/@diosa_aisha?si=OSGcO77ZR7dFuqGw" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><Youtube size={18} strokeWidth={1.6} /></a>
+                  <a href="https://facebook.com" aria-label="Facebook"><Facebook size={18} strokeWidth={1.6} /></a>
+                </div>
+              </div>
+            </div>
+
+            <div className="contact-notice">
+              <Heart size={28} strokeWidth={1.5} aria-hidden="true" />
+              <p>
+                Si estás atravesando un momento difícil y necesitas ayuda inmediata, por favor contacta a un
+                profesional de la salud o a los servicios de emergencia de tu país.
+              </p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section className="contact-faq">
+        <div className="contact-faq-inner">
+          <div className="contact-faq-heading">
+            <p className="eyebrow">Antes de escribir</p>
+            <h2>Preguntas frecuentes</h2>
+          </div>
+          <div className="contact-faq-list">
+            {faqs.map(({ question, answer }) => (
+              <details key={question}>
+                <summary>
+                  <span>{question}</span>
+                  <Plus className="faq-plus" size={22} strokeWidth={1.5} aria-hidden="true" />
+                </summary>
+                <p>{answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="about-band">
+        <p>
+          <span className="about-band-line" aria-hidden="true" />
+          <em>No necesitas tener todas las respuestas. Solo darte la oportunidad de preguntar.</em>
+          <span className="about-band-line" aria-hidden="true" />
+        </p>
+      </section>
+    </div>
+  );
+}
+
+type Route = "home" | "about" | "contact";
+
+function getRoute(): Route {
+  if (window.location.hash === "#conocenos") return "about";
+  if (window.location.hash === "#contacto") return "contact";
+  return "home";
+}
+
 function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [authMessage, setAuthMessage] = useState("");
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [route, setRoute] = useState<Route>(getRoute);
+
+  useEffect(() => {
+    const onHashChange = () => setRoute(getRoute());
+    window.addEventListener("hashchange", onHashChange);
+    return () => window.removeEventListener("hashchange", onHashChange);
+  }, []);
+
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    const target = route === "home" && id ? document.getElementById(id) : null;
+    if (target) target.scrollIntoView();
+    else window.scrollTo(0, 0);
+  }, [route]);
 
   useEffect(() => {
     if (!supabase) return;
@@ -174,10 +465,11 @@ function App() {
         </button>
 
         <nav className={`main-nav${menuOpen ? " is-open" : ""}`} aria-label="Navegación principal">
-          <a className="active" href="#inicio" onClick={() => setMenuOpen(false)}>Inicio</a>
-          <a href="#nosotros" onClick={() => setMenuOpen(false)}>Nosotros</a>
+          <a className={route === "home" ? "active" : undefined} href="#inicio" onClick={() => setMenuOpen(false)}>Inicio</a>
+          <a className={route === "about" ? "active" : undefined} href="#conocenos" onClick={() => setMenuOpen(false)}>Conócenos</a>
           <a href="#cursos" onClick={() => setMenuOpen(false)}>Cursos</a>
           <a href="#comunidad" onClick={() => setMenuOpen(false)}>Comunidad</a>
+          <a className={route === "contact" ? "active" : undefined} href="#contacto" onClick={() => setMenuOpen(false)}>Contacto</a>
         </nav>
 
         <div className="header-actions">
@@ -213,6 +505,12 @@ function App() {
       )}
 
       <main>
+        {route === "about" ? (
+          <AboutPage />
+        ) : route === "contact" ? (
+          <ContactPage />
+        ) : (
+          <>
         <section className="hero" id="inicio">
           <img
             className="hero-banner"
@@ -312,6 +610,8 @@ function App() {
           </button>
         </div>
         </section>
+          </>
+        )}
       </main>
 
       <footer className="site-footer">
@@ -322,20 +622,20 @@ function App() {
           </a>
           <div className="footer-links">
             <a href="#inicio">Inicio</a>
-            <a href="#nosotros">Nosotros</a>
+            <a href="#conocenos">Conócenos</a>
             <a href="#cursos">Cursos</a>
           </div>
           <div className="footer-links">
             <a href="#comunidad">Blog</a>
             <a href="#comunidad">Comunidad</a>
-            <a href="#comunidad">Contacto</a>
+            <a href="#contacto">Contacto</a>
           </div>
           <div className="footer-social">
             <span>Síguenos</span>
             <div className="social-icons" aria-label="Redes sociales">
               <a href="https://www.instagram.com/diosa_aisha/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">ig</a>
               <a href="https://facebook.com" aria-label="Facebook">f</a>
-              <a href="https://youtube.com" aria-label="YouTube">▶</a>
+              <a href="https://youtube.com/@diosa_aisha?si=OSGcO77ZR7dFuqGw" target="_blank" rel="noopener noreferrer" aria-label="YouTube">▶</a>
               <a href="https://pinterest.com" aria-label="Pinterest">p</a>
             </div>
           </div>

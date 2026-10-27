@@ -5,23 +5,28 @@ import {
   ArrowUp,
   BookOpen,
   Clock3,
-  Facebook,
   Flower2,
   GraduationCap,
   HandHeart,
   Heart,
-  Instagram,
   Leaf,
   Menu,
-  MessageCircle,
-  Plus,
+  Send,
   Sparkles,
   Sprout,
   UsersRound,
   X,
-  Youtube,
 } from "lucide-react";
 import { isSupabaseConfigured, supabase } from "./lib/supabase";
+import {
+  ContactNotConfiguredError,
+  WHATSAPP_DISPLAY,
+  contactEmail,
+  sendContactMessage,
+  whatsappLink,
+  whatsappMessage,
+  type ContactPayload,
+} from "./lib/contact";
 
 const categories = [
   {
@@ -183,185 +188,297 @@ function AboutPage() {
   );
 }
 
-const faqs = [
-  {
-    question: "¿Necesito experiencia previa para empezar?",
-    answer: "No. Nuestros cursos de nivel inicial están pensados para quienes recién comienzan a reconocer su sensibilidad. Avanzas a tu propio ritmo.",
-  },
-  {
-    question: "¿Cómo sé qué curso es el adecuado para mí?",
-    answer: "Escríbenos contándonos un poco de tu experiencia y te orientaremos personalmente hacia el programa que mejor acompañe tu momento.",
-  },
-  {
-    question: "¿Lo que comparto es confidencial?",
-    answer: "Sí. Todo lo que nos cuentas se trata con respeto y discreción, y nunca se comparte con terceros.",
-  },
+const contactSubjects = [
+  "Información sobre cursos",
+  "Desarrollo de la sensibilidad",
+  "Mediumnidad y aprendizaje",
+  "Soporte o acceso a la plataforma",
+  "Otras consultas",
 ];
 
-const contactTopics = [
-  "Quiero saber qué curso es para mí",
-  "Dudas sobre inscripción y pagos",
-  "Acompañamiento personal",
-  "Comunidad y encuentros en directo",
-  "Otro motivo",
-];
+type ContactFields = ContactPayload & { privacy: boolean };
+type ContactErrors = Partial<Record<keyof ContactFields, string>>;
+type ContactStatus = "idle" | "sending" | "sent" | "error";
 
-const WHATSAPP_NUMBER = "447771620333";
+const emptyContact: ContactFields = { name: "", email: "", subject: "", message: "", privacy: false };
+
+function validateContact(values: ContactFields): ContactErrors {
+  const errors: ContactErrors = {};
+  if (!values.name.trim()) errors.name = "Cuéntanos cómo te llamas.";
+  if (!values.email.trim()) errors.email = "Escribe tu correo electrónico para poder responderte.";
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(values.email.trim())) errors.email = "Revisa tu correo: parece que le falta algo.";
+  if (!values.subject) errors.subject = "Elige el asunto de tu mensaje.";
+  if (!values.message.trim()) errors.message = "Escribe tu mensaje, aunque sea breve.";
+  if (!values.privacy) errors.privacy = "Necesitamos tu aceptación para poder responderte.";
+  return errors;
+}
+
+function LeafDivider({ className }: { className?: string }) {
+  return (
+    <span className={`leaf-divider${className ? ` ${className}` : ""}`} aria-hidden="true">
+      <Leaf size={18} strokeWidth={1.3} />
+    </span>
+  );
+}
 
 function ContactPage() {
-  const [sent, setSent] = useState(false);
+  const [values, setValues] = useState<ContactFields>(emptyContact);
+  const [errors, setErrors] = useState<ContactErrors>({});
+  const [status, setStatus] = useState<ContactStatus>("idle");
+  const [fallbackOnly, setFallbackOnly] = useState(false);
+  const [trap, setTrap] = useState("");
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const text = [
-      `Hola, soy ${data.get("nombre")} (${data.get("email")}).`,
-      `Motivo: ${data.get("motivo")}`,
-      "",
-      String(data.get("mensaje")),
-    ].join("\n");
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
-    setSent(true);
+  function update<K extends keyof ContactFields>(key: K, value: ContactFields[K]) {
+    setValues((current) => ({ ...current, [key]: value }));
+    if (errors[key]) setErrors((current) => ({ ...current, [key]: undefined }));
   }
+
+  function checkField(key: keyof ContactFields) {
+    const message = validateContact(values)[key];
+    setErrors((current) => ({ ...current, [key]: message }));
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (status === "sending") return;
+
+    const found = validateContact(values);
+    setErrors(found);
+    const firstInvalid = (Object.keys(found) as (keyof ContactFields)[])[0];
+    if (firstInvalid) {
+      document.getElementById(`contact-${firstInvalid}`)?.focus();
+      return;
+    }
+
+    // Bots fill hidden fields; humans never see this one.
+    if (trap) {
+      setStatus("sent");
+      return;
+    }
+
+    setStatus("sending");
+    setFallbackOnly(false);
+    try {
+      await sendContactMessage({
+        name: values.name.trim(),
+        email: values.email.trim(),
+        subject: values.subject,
+        message: values.message.trim(),
+      });
+      setStatus("sent");
+    } catch (error) {
+      setFallbackOnly(error instanceof ContactNotConfiguredError);
+      setStatus("error");
+    }
+  }
+
+  function resetForm() {
+    setValues(emptyContact);
+    setErrors({});
+    setStatus("idle");
+  }
+
+  const sending = status === "sending";
+  const fieldProps = (key: keyof ContactFields) => ({
+    "aria-invalid": errors[key] ? true : undefined,
+    "aria-describedby": errors[key] ? `contact-${key}-error` : undefined,
+  });
+  const fieldError = (key: keyof ContactFields) =>
+    errors[key] ? <p className="field-error" id={`contact-${key}-error`}>{errors[key]}</p> : null;
 
   return (
     <div className="contact-page">
       <section className="contact-hero">
-        <div className="contact-hero-inner">
-          <Leaf size={44} strokeWidth={1.2} aria-hidden="true" />
-          <p className="eyebrow">Contacto</p>
-          <h1>Hablemos, <em>sin prisa</em></h1>
-          <span className="contact-divider" aria-hidden="true" />
-          <p>
-            Si tienes una duda sobre los cursos, quieres contarnos tu experiencia o simplemente no sabes
-            por dónde empezar, escríbenos. Leemos cada mensaje con atención y te respondemos personalmente.
+        <img
+          src="/contact-hero.jpg"
+          alt="Mujer serena con el rostro elevado hacia la luz dorada del atardecer, entre árboles de otoño"
+          fetchPriority="high"
+        />
+        <div className="contact-hero-copy">
+          <p className="eyebrow">Contáctanos</p>
+          <LeafDivider />
+          <h1>Estamos aquí<br />para ti</h1>
+          <p className="contact-hero-sub">
+            Si tienes alguna consulta, deseas más información sobre nuestros cursos o necesitas ayuda, escríbenos. Será un gusto acompañarte.
           </p>
         </div>
       </section>
 
       <section className="contact-main">
         <div className="contact-grid">
-          <div className="contact-card contact-form-card">
-            {sent ? (
+          <div className="contact-info">
+            <h2>¿Tienes alguna pregunta?</h2>
+            <p className="contact-lead">Será un placer ayudarte. Escríbenos y te responderemos a la brevedad.</p>
+
+            <ul className="contact-blocks">
+              <li>
+                <img src="/contact-icon-mail.png" alt="" />
+                <div>
+                  <h3>Correo electrónico</h3>
+                  {contactEmail ? (
+                    <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+                  ) : (
+                    <span className="contact-placeholder">[correo por configurar]</span>
+                  )}
+                </div>
+              </li>
+              <li>
+                <img src="/contact-icon-whatsapp.png" alt="" />
+                <div>
+                  <h3>WhatsApp</h3>
+                  <a href={whatsappLink()} target="_blank" rel="noopener noreferrer">{WHATSAPP_DISPLAY}</a>
+                </div>
+              </li>
+              <li>
+                <img src="/contact-icon-location.png" alt="" />
+                <div>
+                  <h3>Nuestra ubicación</h3>
+                  <span>Atención online</span>
+                </div>
+              </li>
+            </ul>
+
+            <p className="contact-sign">
+              Tu camino interior<br />también merece ser acompañado
+            </p>
+            <LeafDivider className="contact-sign-divider" />
+          </div>
+
+          <div className="contact-form-card">
+            <img className="contact-form-leaves" src="/contact-leaves.jpg" alt="" loading="lazy" />
+            {status === "sent" ? (
               <div className="contact-sent" role="status">
                 <Flower2 size={56} strokeWidth={1.1} aria-hidden="true" />
-                <h2>Continúa en WhatsApp</h2>
+                <h2>Tu mensaje ha sido enviado</h2>
                 <p>
-                  Abrimos WhatsApp con tu mensaje listo. Solo debes enviarlo y te responderemos
-                  personalmente. Mientras tanto, respira y date permiso para seguir explorando.
+                  Gracias por escribirnos. Te responderemos personalmente a la brevedad.
+                  Mientras tanto, respira y date permiso para seguir explorando.
                 </p>
-                <button className="button button-outline" type="button" onClick={() => setSent(false)}>
-                  Escribir otro mensaje
+                <button className="button button-outline" type="button" onClick={resetForm}>
+                  Enviar otro mensaje
                 </button>
               </div>
             ) : (
               <>
-                <h2>Escríbenos</h2>
-                <p className="contact-lead">Cuéntanos lo que necesites. Tu mensaje se envía por WhatsApp y te respondemos personalmente.</p>
-                <form className="contact-form" onSubmit={handleSubmit}>
+                <h2>Envíanos un mensaje</h2>
+                <form className="contact-form" onSubmit={handleSubmit} noValidate aria-busy={sending}>
                   <div className="field">
-                    <label htmlFor="c-nombre">Nombre</label>
-                    <input id="c-nombre" name="nombre" type="text" placeholder="¿Cómo te llamas?" required autoComplete="name" />
+                    <label htmlFor="contact-name">Nombre completo</label>
+                    <input
+                      id="contact-name"
+                      type="text"
+                      autoComplete="name"
+                      placeholder="¿Cómo te llamas?"
+                      value={values.name}
+                      onChange={(event) => update("name", event.target.value)}
+                      onBlur={() => checkField("name")}
+                      required
+                      {...fieldProps("name")}
+                    />
+                    {fieldError("name")}
                   </div>
                   <div className="field">
-                    <label htmlFor="c-email">Correo electrónico</label>
-                    <input id="c-email" name="email" type="email" placeholder="tu@correo.com" required autoComplete="email" />
+                    <label htmlFor="contact-email">Correo electrónico</label>
+                    <input
+                      id="contact-email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="tu@correo.com"
+                      value={values.email}
+                      onChange={(event) => update("email", event.target.value)}
+                      onBlur={() => checkField("email")}
+                      required
+                      {...fieldProps("email")}
+                    />
+                    {fieldError("email")}
                   </div>
                   <div className="field field-wide">
-                    <label htmlFor="c-motivo">¿Sobre qué quieres hablarnos?</label>
-                    <select id="c-motivo" name="motivo" defaultValue={contactTopics[0]}>
-                      {contactTopics.map((topic) => <option key={topic}>{topic}</option>)}
+                    <label htmlFor="contact-subject">Asunto</label>
+                    <select
+                      id="contact-subject"
+                      value={values.subject}
+                      onChange={(event) => update("subject", event.target.value)}
+                      onBlur={() => checkField("subject")}
+                      required
+                      {...fieldProps("subject")}
+                    >
+                      <option value="" disabled>Selecciona un asunto</option>
+                      {contactSubjects.map((subject) => <option key={subject} value={subject}>{subject}</option>)}
                     </select>
+                    {fieldError("subject")}
                   </div>
                   <div className="field field-wide">
-                    <label htmlFor="c-mensaje">Tu mensaje</label>
-                    <textarea id="c-mensaje" name="mensaje" rows={6} placeholder="Escribe con libertad, este es un espacio seguro." required />
+                    <label htmlFor="contact-message">Mensaje</label>
+                    <textarea
+                      id="contact-message"
+                      rows={6}
+                      placeholder="Escribe con libertad, este es un espacio seguro."
+                      value={values.message}
+                      onChange={(event) => update("message", event.target.value)}
+                      onBlur={() => checkField("message")}
+                      required
+                      {...fieldProps("message")}
+                    />
+                    {fieldError("message")}
                   </div>
+
                   <div className="field-wide contact-consent">
-                    <input id="c-priv" type="checkbox" required />
-                    <label htmlFor="c-priv">Acepto que usen estos datos para responderme. Se tratan con total confidencialidad.</label>
+                    <div>
+                      <input
+                        id="contact-privacy"
+                        type="checkbox"
+                        checked={values.privacy}
+                        onChange={(event) => update("privacy", event.target.checked)}
+                        required
+                        {...fieldProps("privacy")}
+                      />
+                      <label htmlFor="contact-privacy">
+                        Acepto que usen mis datos para responderme. Se tratan con total confidencialidad.
+                      </label>
+                    </div>
+                    {fieldError("privacy")}
                   </div>
+
+                  <div className="contact-trap" aria-hidden="true">
+                    <label htmlFor="contact-website">No completes este campo</label>
+                    <input id="contact-website" type="text" tabIndex={-1} autoComplete="off" value={trap} onChange={(event) => setTrap(event.target.value)} />
+                  </div>
+
+                  {status === "error" && (
+                    <div className="field-wide form-alert" role="alert">
+                      <p>
+                        {fallbackOnly
+                          ? "El envío desde el formulario todavía no está activado, pero puedes escribirnos directamente por WhatsApp."
+                          : "No pudimos enviar tu mensaje. Inténtalo de nuevo en unos minutos o escríbenos por WhatsApp."}
+                      </p>
+                      <a
+                        href={whatsappLink(whatsappMessage({ name: values.name, email: values.email, subject: values.subject, message: values.message }))}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Escribir por WhatsApp
+                      </a>
+                    </div>
+                  )}
+
                   <div className="field-wide contact-actions">
-                    <button className="button" type="submit">
-                      Enviar mensaje <ArrowRight size={16} />
+                    <button className="button" type="submit" disabled={sending}>
+                      {sending ? "Enviando…" : "Enviar mensaje"} <Send size={16} aria-hidden="true" />
                     </button>
-                    <span className="contact-thanks">Gracias por confiar en nosotras.</span>
                   </div>
                 </form>
               </>
             )}
           </div>
-
-          <aside className="contact-side">
-            <figure className="contact-photo">
-              <img src="/conocenos-foto.jpg" alt="Aisha sonriendo entre hojas de otoño" loading="lazy" />
-              <figcaption>“Un espacio para escucharte”</figcaption>
-            </figure>
-
-            <div className="contact-card contact-ways">
-              <h2>Otras formas de encontrarnos</h2>
-              <div className="contact-way">
-                <span className="contact-way-icon"><MessageCircle size={20} strokeWidth={1.6} aria-hidden="true" /></span>
-                <div>
-                  <span className="contact-way-label">WhatsApp</span>
-                  <a href={`https://wa.me/${WHATSAPP_NUMBER}`} target="_blank" rel="noopener noreferrer">+44 7771 620333</a>
-                </div>
-              </div>
-              <div className="contact-way">
-                <span className="contact-way-icon"><Instagram size={20} strokeWidth={1.6} aria-hidden="true" /></span>
-                <div>
-                  <span className="contact-way-label">Instagram</span>
-                  <a href="https://www.instagram.com/diosa_aisha/" target="_blank" rel="noopener noreferrer">@diosa_aisha</a>
-                </div>
-              </div>
-              <hr />
-              <div className="contact-follow">
-                <span>Síguenos</span>
-                <div>
-                  <a href="https://www.instagram.com/diosa_aisha/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><Instagram size={18} strokeWidth={1.6} /></a>
-                  <a href="https://youtube.com/@diosa_aisha?si=OSGcO77ZR7dFuqGw" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><Youtube size={18} strokeWidth={1.6} /></a>
-                  <a href="https://facebook.com" aria-label="Facebook"><Facebook size={18} strokeWidth={1.6} /></a>
-                </div>
-              </div>
-            </div>
-
-            <div className="contact-notice">
-              <Heart size={28} strokeWidth={1.5} aria-hidden="true" />
-              <p>
-                Si estás atravesando un momento difícil y necesitas ayuda inmediata, por favor contacta a un
-                profesional de la salud o a los servicios de emergencia de tu país.
-              </p>
-            </div>
-          </aside>
         </div>
       </section>
 
-      <section className="contact-faq">
-        <div className="contact-faq-inner">
-          <div className="contact-faq-heading">
-            <p className="eyebrow">Antes de escribir</p>
-            <h2>Preguntas frecuentes</h2>
-          </div>
-          <div className="contact-faq-list">
-            {faqs.map(({ question, answer }) => (
-              <details key={question}>
-                <summary>
-                  <span>{question}</span>
-                  <Plus className="faq-plus" size={22} strokeWidth={1.5} aria-hidden="true" />
-                </summary>
-                <p>{answer}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="about-band">
-        <p>
-          <span className="about-band-line" aria-hidden="true" />
-          <em>No necesitas tener todas las respuestas. Solo darte la oportunidad de preguntar.</em>
-          <span className="about-band-line" aria-hidden="true" />
-        </p>
+      <section className="contact-quote">
+        <img src="/contact-quote.jpg" alt="Paisaje de montañas y bosque otoñal bajo la luz dorada del atardecer" loading="lazy" />
+        <blockquote>
+          <p>Todo gran cambio comienza<br />con una simple decisión:<br />la de escuchar tu voz interior.</p>
+          <LeafDivider />
+        </blockquote>
       </section>
     </div>
   );
@@ -635,7 +752,7 @@ function App() {
             <div className="social-icons" aria-label="Redes sociales">
               <a href="https://www.instagram.com/diosa_aisha/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">ig</a>
               <a href="https://facebook.com" aria-label="Facebook">f</a>
-              <a href="https://youtube.com/@diosa_aisha?si=OSGcO77ZR7dFuqGw" target="_blank" rel="noopener noreferrer" aria-label="YouTube">▶</a>
+              <a href="https://youtube.com/@diosa_aisha?si=vppX1qKN-0VMe3i4" target="_blank" rel="noopener noreferrer" aria-label="YouTube">▶</a>
               <a href="https://pinterest.com" aria-label="Pinterest">p</a>
             </div>
           </div>

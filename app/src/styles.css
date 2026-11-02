@@ -100,8 +100,8 @@ button:focus-visible, a:focus-visible { outline: 3px solid #d28a45; outline-offs
 .contact-page { padding-top: 84px; background: #fdf5eb; }
 .contact-hero { position: relative; container-type: inline-size; background: #fdf5eb; }
 .contact-hero img { display: block; width: 100%; height: auto; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V86C86 97 72 83 56 90C40 97 22 86 0 93Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 0H100V86C86 97 72 83 56 90C40 97 22 86 0 93Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat; }
-.contact-hero-copy { position: absolute; left: 10.5%; top: 12%; width: 38%; color: #4a2a1e; }
-.contact-hero::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: linear-gradient(90deg, rgba(253, 245, 235, .55), rgba(253, 245, 235, 0) 52%); -webkit-mask: linear-gradient(180deg, #000 80%, transparent); mask: linear-gradient(180deg, #000 80%, transparent); }
+.contact-hero-copy { position: absolute; left: 51%; top: 13%; width: 39%; color: #4a2a1e; }
+.contact-hero::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: radial-gradient(48% 70% at 70% 34%, rgba(253, 243, 228, .6), rgba(253, 243, 228, 0) 80%); }
 .contact-hero-copy { z-index: 2; }
 .contact-hero-copy .eyebrow { margin: 0; font-size: clamp(10px, .95cqw, 14px); letter-spacing: .3em; color: #8a4a22; }
 .contact-hero-copy .leaf-divider { margin: 1.1cqw 0 1.4cqw; justify-content: flex-start; }
@@ -147,7 +147,15 @@ button:focus-visible, a:focus-visible { outline: 3px solid #d28a45; outline-offs
 .form-alert { padding: 14px 16px; border-radius: 12px; background: #fbe7de; border: 1px solid #e4b9a6; color: #6e2415; font-size: 14px; line-height: 1.6; }
 .form-alert p { margin: 0 0 6px; }
 .form-alert a { font-weight: 600; color: var(--rust-dark); text-decoration: underline; }
-.contact-actions { display: flex; justify-content: center; margin-top: 4px; }
+.contact-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 4px; }
+.contact-actions .button { flex: 1 1 210px; max-width: 280px; }
+.button-whatsapp { background: #557a50; }
+.button-whatsapp:hover { background: #456642; }
+.contact-note { margin: 0; text-align: center; font-size: 13px; line-height: 1.6; color: #6b4a3a; }
+.contact-sent-help { font-size: 14px; }
+.link-button { padding: 0; border: 0; background: none; color: var(--rust); font: inherit; text-decoration: underline; cursor: pointer; }
+.link-button:hover { color: var(--rust-dark); }
+.link-button:focus-visible { outline: 3px solid #d28a45; outline-offset: 2px; }
 .contact-actions .button { min-height: 52px; padding: 0 36px; font-size: 15px; }
 .contact-sent { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; padding: 28px 8px 8px; color: var(--rust); }
 .contact-sent h2 { margin: 0; font-size: 36px; }
@@ -618,7 +626,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #d28a45; outline-offs
 }
 
 @media (max-width: 860px) {
-  .contact-hero img { height: 280px; object-fit: cover; object-position: 82% center; }
+  .contact-hero img { height: 280px; object-fit: cover; object-position: 16% center; }
   .contact-hero::before { display: none; }
   .contact-hero-copy { position: static; width: auto; padding: 28px 32px 32px; background: transparent; }
   .contact-hero-copy .eyebrow { font-size: 12px; }
@@ -688,7 +696,7 @@ button:focus-visible, a:focus-visible { outline: 3px solid #d28a45; outline-offs
   .access-action { width: 100%; }
   .access-action .button { width: 100%; }
   .contact-page { padding-top: 68px; }
-  .contact-hero img { height: 250px; object-fit: cover; object-position: 82% center; }
+  .contact-hero img { height: 250px; object-fit: cover; object-position: 16% center; }
   .contact-hero-copy { position: static; width: auto; padding: 26px 20px 30px; background: transparent; }
   .contact-hero-copy .eyebrow { font-size: 11px; }
   .contact-hero-copy .leaf-divider { margin: 10px 0 14px; }

@@ -12,6 +12,7 @@ import {
   Heart,
   Leaf,
   Menu,
+  MessageCircle,
   Send,
   ShieldCheck,
   Sparkles,
@@ -27,12 +28,12 @@ import { AuthGate } from "./pages/MemberPages";
 import { PortalApp } from "./portal/PortalApp";
 import { LotusIcon } from "./pages/brand";
 import {
-  ContactNotConfiguredError,
+  MESSAGE_MAX_LENGTH,
   WHATSAPP_DISPLAY,
+  channelLink,
   contactEmail,
-  sendContactMessage,
   whatsappLink,
-  whatsappMessage,
+  type ContactChannel,
   type ContactPayload,
 } from "./lib/contact";
 
@@ -192,7 +193,7 @@ const contactSubjects = [
 
 type ContactFields = ContactPayload & { privacy: boolean };
 type ContactErrors = Partial<Record<keyof ContactFields, string>>;
-type ContactStatus = "idle" | "sending" | "sent" | "error";
+type ContactStatus = "idle" | "opened";
 
 const emptyContact: ContactFields = { name: "", email: "", subject: "", message: "", privacy: false };
 
@@ -219,7 +220,8 @@ function ContactPage() {
   const [values, setValues] = useState<ContactFields>(emptyContact);
   const [errors, setErrors] = useState<ContactErrors>({});
   const [status, setStatus] = useState<ContactStatus>("idle");
-  const [fallbackOnly, setFallbackOnly] = useState(false);
+  const [channel, setChannel] = useState<ContactChannel>("email");
+  const [prepared, setPrepared] = useState<ContactPayload | null>(null);
   const [trap, setTrap] = useState("");
 
   function update<K extends keyof ContactFields>(key: K, value: ContactFields[K]) {
@@ -232,9 +234,10 @@ function ContactPage() {
     setErrors((current) => ({ ...current, [key]: message }));
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (status === "sending") return;
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const chosen: ContactChannel = submitter?.value === "whatsapp" ? "whatsapp" : "email";
 
     const found = validateContact(values);
     setErrors(found);
@@ -245,34 +248,33 @@ function ContactPage() {
     }
 
     // Bots fill hidden fields; humans never see this one.
-    if (trap) {
-      setStatus("sent");
-      return;
-    }
+    if (trap) return;
 
-    setStatus("sending");
-    setFallbackOnly(false);
-    try {
-      await sendContactMessage({
-        name: values.name.trim(),
-        email: values.email.trim(),
-        subject: values.subject,
-        message: values.message.trim(),
-      });
-      setStatus("sent");
-    } catch (error) {
-      setFallbackOnly(error instanceof ContactNotConfiguredError);
-      setStatus("error");
-    }
+    const payload: ContactPayload = {
+      name: values.name.trim(),
+      email: values.email.trim(),
+      subject: values.subject,
+      message: values.message.trim(),
+    };
+    setPrepared(payload);
+    setChannel(chosen);
+    setStatus("opened");
+    openChannel(chosen, payload);
+  }
+
+  function openChannel(target: ContactChannel, payload: ContactPayload) {
+    const link = channelLink(target, payload);
+    if (target === "whatsapp") window.open(link, "_blank", "noopener,noreferrer");
+    else window.location.href = link;
   }
 
   function resetForm() {
     setValues(emptyContact);
     setErrors({});
+    setPrepared(null);
     setStatus("idle");
   }
 
-  const sending = status === "sending";
   const fieldProps = (key: keyof ContactFields) => ({
     "aria-invalid": errors[key] ? true : undefined,
     "aria-describedby": errors[key] ? `contact-${key}-error` : undefined,
@@ -340,22 +342,39 @@ function ContactPage() {
 
           <div className="contact-form-card">
             <img className="contact-form-leaves" src="/contact-leaves.jpg" alt="" loading="lazy" />
-            {status === "sent" ? (
+            {status === "opened" && prepared ? (
               <div className="contact-sent" role="status">
                 <Flower2 size={56} strokeWidth={1.1} aria-hidden="true" />
-                <h2>Tu mensaje ha sido enviado</h2>
+                <h2>Tu mensaje está listo</h2>
                 <p>
-                  Gracias por escribirnos. Te responderemos personalmente a la brevedad.
-                  Mientras tanto, respira y date permiso para seguir explorando.
+                  {channel === "email"
+                    ? "Abrimos tu aplicación de correo con el mensaje ya escrito. Solo falta que pulses «Enviar» allí."
+                    : "Abrimos WhatsApp con el mensaje ya escrito. Solo falta que pulses «Enviar» allí."}
+                  {" "}Hasta entonces, el mensaje todavía no ha salido.
+                </p>
+                <p className="contact-sent-help">
+                  ¿No se abrió?{" "}
+                  <button type="button" className="link-button" onClick={() => openChannel(channel, prepared)}>Intentar de nuevo</button>
+                  {channel === "email" ? (
+                    <>
+                      {" "}o escríbenos a <a href={`mailto:${contactEmail}`}>{contactEmail}</a>, o{" "}
+                      <button type="button" className="link-button" onClick={() => openChannel("whatsapp", prepared)}>envíalo por WhatsApp</button>.
+                    </>
+                  ) : (
+                    <>
+                      {" "}o{" "}
+                      <button type="button" className="link-button" onClick={() => openChannel("email", prepared)}>envíalo por correo</button>.
+                    </>
+                  )}
                 </p>
                 <button className="button button-outline" type="button" onClick={resetForm}>
-                  Enviar otro mensaje
+                  Escribir otro mensaje
                 </button>
               </div>
             ) : (
               <>
                 <h2>Envíanos un mensaje</h2>
-                <form className="contact-form" onSubmit={handleSubmit} noValidate aria-busy={sending}>
+                <form className="contact-form" onSubmit={handleSubmit} noValidate>
                   <div className="field">
                     <label htmlFor="contact-name">Nombre completo</label>
                     <input
@@ -406,6 +425,7 @@ function ContactPage() {
                     <textarea
                       id="contact-message"
                       rows={6}
+                      maxLength={MESSAGE_MAX_LENGTH}
                       placeholder="Escribe con libertad, este es un espacio seguro."
                       value={values.message}
                       onChange={(event) => update("message", event.target.value)}
@@ -438,28 +458,17 @@ function ContactPage() {
                     <input id="contact-website" type="text" tabIndex={-1} autoComplete="off" value={trap} onChange={(event) => setTrap(event.target.value)} />
                   </div>
 
-                  {status === "error" && (
-                    <div className="field-wide form-alert" role="alert">
-                      <p>
-                        {fallbackOnly
-                          ? "El envío desde el formulario todavía no está activado, pero puedes escribirnos directamente por WhatsApp."
-                          : "No pudimos enviar tu mensaje. Inténtalo de nuevo en unos minutos o escríbenos por WhatsApp."}
-                      </p>
-                      <a
-                        href={whatsappLink(whatsappMessage({ name: values.name, email: values.email, subject: values.subject, message: values.message }))}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Escribir por WhatsApp
-                      </a>
-                    </div>
-                  )}
-
                   <div className="field-wide contact-actions">
-                    <button className="button" type="submit" disabled={sending}>
-                      {sending ? "Enviando…" : "Enviar mensaje"} <Send size={16} aria-hidden="true" />
+                    <button className="button" type="submit" name="channel" value="email">
+                      Enviar por correo <Send size={16} aria-hidden="true" />
+                    </button>
+                    <button className="button button-whatsapp" type="submit" name="channel" value="whatsapp">
+                      Enviar por WhatsApp <MessageCircle size={16} aria-hidden="true" />
                     </button>
                   </div>
+                  <p className="field-wide contact-note">
+                    Se abrirá tu aplicación de correo o WhatsApp con el mensaje ya escrito; el envío lo confirmas tú allí.
+                  </p>
                 </form>
               </>
             )}
@@ -947,7 +956,6 @@ function App() {
             <a href="#cursos">Cursos</a>
           </div>
           <div className="footer-links">
-            <a href="#comunidad">Blog</a>
             <a href="#comunidad">Comunidad</a>
             <a href="#contacto">Contacto</a>
           </div>

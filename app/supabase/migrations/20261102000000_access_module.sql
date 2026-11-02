@@ -356,12 +356,15 @@ begin
 end;
 $$;
 
+-- La firma de retorno cambia respecto a versiones anteriores: se elimina antes de recrearla.
+drop function if exists public.admin_list_students(text, int, int);
+
 create or replace function public.admin_list_students(
   p_search text default '', p_limit int default 10, p_offset int default 0
 )
 returns table (
   student_id uuid, full_name text, email text, created_at timestamptz,
-  courses_count int, workshops_count int, total_count bigint
+  courses_count int, workshops_count int, access_state text, total_count bigint
 )
 language plpgsql
 stable
@@ -387,6 +390,12 @@ begin
            where a.user_id = f.id and a.status = 'active' and c.content_type = 'course'),
          (select count(*)::int from public.course_access a join public.courses c on c.id = a.course_id
            where a.user_id = f.id and a.status = 'active' and c.content_type = 'workshop'),
+         -- active: al menos un acceso vigente; revoked: solo accesos retirados; none: nunca tuvo accesos
+         case
+           when exists (select 1 from public.course_access a where a.user_id = f.id and a.status = 'active') then 'active'
+           when exists (select 1 from public.course_access a where a.user_id = f.id and a.status = 'revoked') then 'revoked'
+           else 'none'
+         end,
          count(*) over ()
   from filtered f
   order by f.created_at desc, f.id

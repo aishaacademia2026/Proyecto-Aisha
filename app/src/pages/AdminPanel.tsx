@@ -10,6 +10,7 @@ import {
   listStudents,
   messageOf,
   setAccess,
+  type AccessState,
   type CourseRow,
   type DashboardStats,
   type StudentAccessRow,
@@ -78,8 +79,8 @@ export function AdminPanel({ tab, session, onSignOut }: { tab: AdminTab; session
       <div className="admin-frame">
         <aside className="admin-side">
           <a className="admin-brand" href="#admin/resumen" aria-label="Aisha, resumen de administración">
-            <LotusIcon />
-            <span><strong>Aisha</strong><small>ACADEMIA ONLINE DE MEDIUMNIDAD</small></span>
+            <span className="admin-brand-top"><LotusIcon /><strong>Aisha</strong></span>
+            <small>ACADEMIA ONLINE DE MEDIUMNIDAD</small>
           </a>
           <nav aria-label="Administración">
             {tabs.map(({ id, label, icon: Icon }) => (
@@ -268,7 +269,7 @@ function StudentsTab({ initialSearch }: { initialSearch: string }) {
           <div className="table-wrap" aria-busy={list.loading}>
             <table className="admin-table">
               <thead>
-                <tr><th scope="col">Estudiante</th><th scope="col">Correo</th><th scope="col">Registro</th><th scope="col">Cursos</th><th scope="col">Talleres</th><th scope="col"><span className="sr-only">Acciones</span></th></tr>
+                <tr><th scope="col">Estudiante</th><th scope="col">Correo</th><th scope="col">Registro</th><th scope="col">Estado</th><th scope="col">Cursos</th><th scope="col">Talleres</th><th scope="col"><span className="sr-only">Acciones</span></th></tr>
               </thead>
               <tbody>
                 {rows.map((student) => (
@@ -276,6 +277,7 @@ function StudentsTab({ initialSearch }: { initialSearch: string }) {
                     <td data-label="Estudiante"><strong>{student.full_name || "Sin nombre"}</strong></td>
                     <td data-label="Correo">{student.email}</td>
                     <td data-label="Registro">{formatDate(student.created_at)}</td>
+                    <td data-label="Estado"><AccessBadge status={studentState(student)} /></td>
                     <td data-label="Cursos">{student.courses_count}</td>
                     <td data-label="Talleres">{student.workshops_count}</td>
                     <td className="cell-actions">
@@ -301,6 +303,11 @@ function StudentsTab({ initialSearch }: { initialSearch: string }) {
       )}
     </>
   );
+}
+
+// Uses the state computed by the database; falls back to the visible counts if it is not there yet.
+function studentState(student: StudentRow): AccessState {
+  return student.access_state ?? (student.courses_count + student.workshops_count > 0 ? "active" : "none");
 }
 
 type Pending = { grant: boolean; rows: StudentAccessRow[] };

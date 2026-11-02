@@ -24,6 +24,8 @@ export type StudentRow = {
   created_at: string;
   courses_count: number;
   workshops_count: number;
+  // Missing while the database still has the first version of admin_list_students().
+  access_state?: AccessState;
 };
 
 export type CourseRow = {

@@ -1,8 +1,9 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { ArrowRight, GraduationCap, Lock } from "lucide-react";
+import { GraduationCap, Lock } from "lucide-react";
 import { getCourseForMember, getMyCourses, type MemberCourse } from "../lib/access";
-import { LoadState, typeLabel, useLoad } from "./access-ui";
+import { AccessBadge, LoadState, formatDate, typeLabel, useLoad } from "./access-ui";
+import { LotusIcon } from "./brand";
 
 // Pages that need a signed-in visitor. The server still decides what each person may see.
 export function AuthGate({
@@ -40,8 +41,11 @@ export function AuthGate({
   return <>{children}</>;
 }
 
+type ProfileTab = "courses" | "data";
+
 export function MyCoursesPage({ session }: { session: Session }) {
   const courses = useLoad(getMyCourses, []);
+  const [tab, setTab] = useState<ProfileTab>("courses");
 
   // Reload when the visitor comes back to the tab, so a new assignment shows up without signing out.
   useEffect(() => {
@@ -53,54 +57,83 @@ export function MyCoursesPage({ session }: { session: Session }) {
   });
 
   const meta = session.user.user_metadata;
-  const name = meta.full_name || meta.name || session.user.email;
-  const avatar = meta.avatar_url || meta.picture;
+  const name: string = meta.full_name || meta.name || session.user.email || "";
+  const avatar: string | undefined = meta.avatar_url || meta.picture || undefined;
   const items = courses.data ?? [];
+  const since = formatDate(session.user.created_at);
+  const state = courses.data ? (items.length > 0 ? "active" : "none") : null;
 
   return (
-    <div className="member-page">
-      <div className="member-wrap">
-        <header className="profile-card">
-          {avatar ? <img src={avatar} alt="" referrerPolicy="no-referrer" /> : <span className="profile-ph"><GraduationCap size={30} aria-hidden="true" /></span>}
+    <div className="member-page member-page-profile">
+      <div className="member-wrap member-wrap-profile">
+        <header className="profile-head">
+          {avatar ? (
+            <img src={avatar} alt="" referrerPolicy="no-referrer" />
+          ) : (
+            <span className="profile-ph"><GraduationCap size={34} aria-hidden="true" /></span>
+          )}
           <div>
-            <p className="eyebrow">Mi perfil</p>
             <h1>{name}</h1>
-            <p>{session.user.email}</p>
+            <p className="profile-mail">{session.user.email}</p>
+            <p className="profile-meta">
+              Miembro desde {since}
+              {state && (<><span aria-hidden="true"> · </span>Estado: <AccessBadge status={state} /></>)}
+            </p>
           </div>
         </header>
 
-        <h2 className="member-title">Mis cursos y talleres</h2>
-        <LoadState loading={courses.loading} error={courses.error} onRetry={courses.reload} hasData={Boolean(courses.data)}>
-          {items.length === 0 ? (
-            <div className="empty-learning">
-              <GraduationCap size={40} strokeWidth={1.2} aria-hidden="true" />
-              <p>Tu espacio de aprendizaje está listo. Muy pronto encontrarás aquí los cursos y talleres que te acompañarán en tu camino.</p>
-            </div>
-          ) : (
-            <div className="member-grid" aria-busy={courses.loading}>
-              {items.map((course) => <MemberCard course={course} key={course.course_id} />)}
-            </div>
-          )}
-        </LoadState>
+        <div className="profile-tabs" role="tablist" aria-label="Secciones de mi perfil">
+          <button type="button" role="tab" id="tab-courses" aria-selected={tab === "courses"} aria-controls="panel-courses" className={tab === "courses" ? "active" : undefined} onClick={() => setTab("courses")}>
+            Mis cursos y talleres
+          </button>
+          <button type="button" role="tab" id="tab-data" aria-selected={tab === "data"} aria-controls="panel-data" className={tab === "data" ? "active" : undefined} onClick={() => setTab("data")}>
+            Mis datos
+          </button>
+        </div>
+
+        {tab === "courses" ? (
+          <section className="profile-panel" id="panel-courses" role="tabpanel" aria-labelledby="tab-courses">
+            <h2>Mis cursos y talleres</h2>
+            <p className="profile-lead">Aquí encontrarás los cursos y talleres a los que tienes acceso.</p>
+            <LoadState loading={courses.loading} error={courses.error} onRetry={courses.reload} hasData={Boolean(courses.data)}>
+              <div className="member-grid" aria-busy={courses.loading}>
+                {items.map((course) => <MemberCard course={course} key={course.course_id} />)}
+                <div className="empty-learning">
+                  <span className="empty-learning-icon"><LotusIcon /></span>
+                  <p><strong>Tu espacio de aprendizaje está listo.</strong> Muy pronto encontrarás aquí los cursos y talleres que te acompañarán en tu camino.</p>
+                </div>
+              </div>
+            </LoadState>
+          </section>
+        ) : (
+          <section className="profile-panel" id="panel-data" role="tabpanel" aria-labelledby="tab-data">
+            <h2>Mis datos</h2>
+            <p className="profile-lead">La información de tu cuenta. Se toma de tu cuenta de Google.</p>
+            <dl className="profile-data">
+              <div><dt>Nombre</dt><dd>{name || "—"}</dd></div>
+              <div><dt>Correo electrónico</dt><dd>{session.user.email}</dd></div>
+              <div><dt>Miembro desde</dt><dd>{since}</dd></div>
+              <div><dt>Cursos y talleres con acceso</dt><dd>{courses.data ? items.length : "—"}</dd></div>
+            </dl>
+          </section>
+        )}
       </div>
     </div>
   );
 }
 
 function MemberCard({ course }: { course: MemberCourse }) {
-  const label = typeLabel(course.content_type);
+  const workshop = course.content_type === "workshop";
   return (
     <article className="member-card">
       <div className="member-card-img">
         {course.cover_image ? <img src={course.cover_image} alt="" loading="lazy" /> : <span><GraduationCap size={36} aria-hidden="true" /></span>}
-        <span className="level-tag">{label}</span>
       </div>
       <div className="member-card-body">
         <h3>{course.title}</h3>
-        {course.description && <p>{course.description}</p>}
-        <span className="badge badge-access-active">Acceso activo</span>
-        <a className="button button-small" href={`#curso/${course.slug}`}>
-          {course.content_type === "workshop" ? "Acceder al taller" : "Acceder al curso"} <ArrowRight size={14} />
+        <p className="member-card-meta">{typeLabel(course.content_type)}{course.category ? ` · ${course.category}` : ""}</p>
+        <a className="member-card-btn" href={`#curso/${course.slug}`}>
+          {workshop ? "Acceder al taller" : "Acceder al curso"}
         </a>
       </div>
     </article>

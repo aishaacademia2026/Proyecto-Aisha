@@ -19,3 +19,19 @@ Sin credenciales, la página funciona en modo demostración y muestra un aviso a
 4. Reinicia el servidor de desarrollo después de modificar `.env`.
 
 El catálogo de la primera versión es contenido de demostración dentro de la aplicación; aún no guarda cursos ni compras en una base de datos y no procesa pagos.
+
+## Módulo de accesos a cursos y talleres
+
+Los estudiantes inician sesión con Google; el administrador decide a qué cursos y talleres puede entrar cada persona. Los permisos son individuales: retirar el acceso a una persona no afecta a nadie más ni al catálogo.
+
+**Activarlo (una sola vez)**
+1. En Supabase abre **SQL Editor**, pega el contenido de `supabase/migrations/20261102000000_access_module.sql` y ejecútalo. Es una migración no destructiva: solo crea tablas, funciones y políticas nuevas. Incluye los tres cursos que hoy muestra la web.
+2. Entra a la web con la cuenta de Google que será administradora (esto crea su perfil) y luego ejecuta en el SQL Editor, con su correo:
+   `update public.profiles set role = 'admin' where email = 'correo-del-administrador@gmail.com';`
+3. Esa cuenta verá **Panel de administración** en el menú de su nombre (también en `#admin/resumen`).
+
+**Rutas:** `#mis-cursos` (estudiante), `#curso/<slug>` (contenido protegido) y `#admin/resumen | estudiantes | cursos | accesos | historial` (administración, con su propia barra lateral en lugar del menú del sitio).
+
+**Seguridad:** el rol y los permisos se comprueban en la base de datos (RLS y funciones `SECURITY DEFINER`), no solo en la interfaz. Un estudiante no puede escribir en `course_access`, cambiar su rol ni leer la auditoría. Toda asignación o revocación queda en `access_audit_log`. No pongas la clave `service_role` en la aplicación.
+
+**Nuevos cursos o talleres:** se agregan en Supabase (Table Editor → `courses`, con `content_type` = `course` o `workshop`). Un contenido en `draft` no es visible para estudiantes; uno `archived` no admite nuevas asignaciones.

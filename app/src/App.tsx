@@ -1,9 +1,10 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
   ArrowRight,
   ArrowUp,
   BookOpen,
+  ChevronDown,
   Clock3,
   Flower2,
   GraduationCap,
@@ -12,12 +13,18 @@ import {
   Leaf,
   Menu,
   Send,
+  ShieldCheck,
   Sparkles,
   Sprout,
+  UserRound,
   UsersRound,
   X,
 } from "lucide-react";
-import { isSupabaseConfigured, supabase } from "./lib/supabase";
+import { checkGoogleSignIn, isSupabaseConfigured, supabase } from "./lib/supabase";
+import { getMyProfile, type Profile } from "./lib/access";
+import { AdminPanel, adminTabFromHash } from "./pages/AdminPanel";
+import { AuthGate, CoursePage, MyCoursesPage } from "./pages/MemberPages";
+import { LotusIcon } from "./pages/brand";
 import {
   ContactNotConfiguredError,
   WHATSAPP_DISPLAY,
@@ -96,20 +103,6 @@ const courses = [
     imageAlt: "Sendero iluminado por el sol entre árboles con hojas de otoño",
   },
 ];
-
-function LotusIcon() {
-  return (
-    <svg viewBox="0 0 64 54" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M32 4C25 13 24 26 32 39C40 26 39 13 32 4Z" />
-      <path d="M32 39C24 36 17 28 16 16C25 18 31 26 32 39Z" />
-      <path d="M32 39C40 36 47 28 48 16C39 18 33 26 32 39Z" />
-      <path d="M32 40C22 40 11 35 6 24C16 23 26 28 32 40Z" />
-      <path d="M32 40C42 40 53 35 58 24C48 23 38 28 32 40Z" />
-      <path d="M32 41C25 45 15 46 8 42C16 39 26 38 32 41Z" />
-      <path d="M32 41C39 45 49 46 56 42C48 39 38 38 32 41Z" />
-    </svg>
-  );
-}
 
 const essence = [
   { icon: Flower2, title: "Autoconocimiento" },
@@ -484,23 +477,102 @@ function ContactPage() {
   );
 }
 
-type Route = "home" | "about" | "contact";
+type Route = "home" | "about" | "contact" | "mycourses" | "course" | "admin";
 
 function getRoute(): Route {
-  if (window.location.hash === "#conocenos") return "about";
-  if (window.location.hash === "#contacto") return "contact";
+  const hash = window.location.hash;
+  if (hash === "#conocenos") return "about";
+  if (hash === "#contacto") return "contact";
+  if (hash === "#mis-cursos") return "mycourses";
+  if (hash.startsWith("#curso/")) return "course";
+  if (hash === "#admin" || hash.startsWith("#admin/")) return "admin";
   return "home";
+}
+
+const RETURN_HASH_KEY = "aisha:return-hash";
+
+// Google sends the visitor back with the failure in the query string or the hash.
+function readAuthError(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  const hashParams = new URLSearchParams(window.location.hash.slice(1));
+  const code = params.get("error_code") || hashParams.get("error_code") || params.get("error") || hashParams.get("error");
+  const description = params.get("error_description") || hashParams.get("error_description");
+  if (!code && !description) return null;
+  if (code === "access_denied") return "Cancelaste el acceso con Google. Cuando quieras, inténtalo de nuevo.";
+  return "No pudimos completar el acceso con Google. Inténtalo de nuevo en unos minutos.";
+}
+
+function userAvatar(session: Session): string | undefined {
+  const meta = session.user.user_metadata;
+  return meta.avatar_url || meta.picture || undefined;
+}
+
+function UserMenu({ session, isAdmin, onSignOut }: { session: Session; isAdmin: boolean; onSignOut: () => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const avatar = userAvatar(session);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  return (
+    <div className="user-menu" ref={ref}>
+      <button
+        type="button"
+        className="user-menu-trigger"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        aria-label="Menú de mi cuenta"
+        onClick={() => setOpen(!open)}
+      >
+        {avatar ? <img className="user-avatar" src={avatar} alt="" referrerPolicy="no-referrer" /> : <UserRound size={22} aria-hidden="true" />}
+        <span className="user-greeting">{session.user.user_metadata.full_name || session.user.email}</span>
+        <ChevronDown size={16} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="user-menu-panel" role="menu">
+          <a role="menuitem" href="#mis-cursos" onClick={() => setOpen(false)}><GraduationCap size={16} aria-hidden="true" /> Mis cursos y talleres</a>
+          {isAdmin && (
+            <a role="menuitem" href="#admin/resumen" onClick={() => setOpen(false)}><ShieldCheck size={16} aria-hidden="true" /> Panel de administración</a>
+          )}
+          <button role="menuitem" type="button" onClick={() => { setOpen(false); onSignOut(); }}>Cerrar sesión</button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
-  const [authMessage, setAuthMessage] = useState("");
+  const [authMessage, setAuthMessage] = useState(() => readAuthError() ?? "");
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [route, setRoute] = useState<Route>(getRoute);
+  const [hash, setHash] = useState(() => window.location.hash);
+  const [authReady, setAuthReady] = useState(!supabase);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profileReady, setProfileReady] = useState(false);
+  const [profileFailed, setProfileFailed] = useState(false);
+  const [profileTick, setProfileTick] = useState(0);
 
   useEffect(() => {
-    const onHashChange = () => setRoute(getRoute());
+    const onHashChange = () => {
+      setRoute(getRoute());
+      setHash(window.location.hash);
+    };
     window.addEventListener("hashchange", onHashChange);
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
@@ -513,9 +585,16 @@ function App() {
   }, [route]);
 
   useEffect(() => {
+    if (window.location.search.includes("error") || window.location.hash.includes("error")) {
+      window.history.replaceState(null, "", window.location.pathname + (window.location.hash.includes("error") ? "" : window.location.hash));
+    }
+  }, []);
+
+  useEffect(() => {
     if (!supabase) return;
 
     void supabase.auth.getSession().then(({ data, error }) => {
+      setAuthReady(true);
       if (error) {
         setAuthMessage("No pudimos comprobar tu sesión. Inténtalo de nuevo.");
         return;
@@ -525,12 +604,49 @@ function App() {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession);
+      if (event !== "SIGNED_IN") return;
+      try {
+        const back = sessionStorage.getItem(RETURN_HASH_KEY);
+        sessionStorage.removeItem(RETURN_HASH_KEY);
+        if (back && back !== window.location.hash) window.location.hash = back;
+      } catch {
+        // sessionStorage can be blocked; the visitor simply stays where Google sent them.
+      }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // The role comes from the server; the interface only uses it to decide what to show.
+  const userId = session?.user.id;
+  useEffect(() => {
+    if (!userId) {
+      setProfile(null);
+      setProfileReady(false);
+      return;
+    }
+    let cancelled = false;
+    setProfileReady(false);
+    setProfileFailed(false);
+    getMyProfile()
+      .then((next) => {
+        if (!cancelled) setProfile(next);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setProfile(null);
+          setProfileFailed(true);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setProfileReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, profileTick]);
 
   async function signInWithGoogle() {
     setAuthMessage("");
@@ -538,17 +654,49 @@ function App() {
       setAuthMessage("Configura las credenciales de Supabase en el archivo .env para activar el acceso con Google.");
       return;
     }
+    if (isSigningIn) return;
 
     setIsSigningIn(true);
+    const status = await checkGoogleSignIn();
+    if (status !== "ready") {
+      setAuthMessage(
+        status === "provider-disabled"
+          ? "El acceso con Google todavía no está activado. Inténtalo más tarde."
+          : "No pudimos conectar con el servicio de acceso. Revisa tu conexión e inténtalo de nuevo."
+      );
+      setIsSigningIn(false);
+      return;
+    }
+
+    try {
+      sessionStorage.setItem(RETURN_HASH_KEY, window.location.hash);
+    } catch {
+      // Optional: without it the visitor lands on the home page after signing in.
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: window.location.origin },
+      options: {
+        redirectTo: window.location.origin,
+        queryParams: { prompt: "select_account" },
+      },
     });
     if (error) {
       setAuthMessage(`No pudimos iniciar sesión: ${error.message}`);
       setIsSigningIn(false);
     }
   }
+
+  // Course and community calls to action: ask for Google first, then confirm once signed in.
+  function handleInterest(message: string) {
+    if (!session) {
+      void signInWithGoogle();
+      return;
+    }
+    setAuthMessage(message);
+  }
+
+  // The admin console replaces the public site chrome with its own sidebar and top bar.
+  const adminShell = route === "admin" && profileReady && profile?.role === "admin";
 
   async function signOut() {
     if (!supabase) return;
@@ -559,6 +707,7 @@ function App() {
 
   return (
     <>
+      {!adminShell && (
       <header className="site-header">
         <img className="header-leaf header-leaf-left" src="/leaf-corner.png" alt="" aria-hidden="true" />
         <a className="brand" href="#inicio" aria-label="AISHA, inicio">
@@ -591,14 +740,7 @@ function App() {
 
         <div className="header-actions">
           {session ? (
-            <div className="signed-in">
-              <span className="user-greeting">
-                {session.user.user_metadata.full_name || session.user.email}
-              </span>
-              <button className="button button-small button-outline" onClick={signOut} type="button">
-                Cerrar sesión
-              </button>
-            </div>
+            <UserMenu session={session} isAdmin={profile?.role === "admin"} onSignOut={signOut} />
           ) : (
             <button
               className="button button-small"
@@ -611,9 +753,10 @@ function App() {
           )}
         </div>
       </header>
+      )}
 
       {authMessage && (
-        <div className="auth-notice" role="status">
+        <div className="auth-notice" role="status" aria-live="polite">
           <span>{authMessage}</span>
           <button type="button" onClick={() => setAuthMessage("")} aria-label="Cerrar aviso">
             <X size={16} />
@@ -626,6 +769,42 @@ function App() {
           <AboutPage />
         ) : route === "contact" ? (
           <ContactPage />
+        ) : route === "mycourses" ? (
+          <AuthGate ready={authReady} session={session} onSignIn={signInWithGoogle} isSigningIn={isSigningIn} title="Mis cursos y talleres">
+            {session && <MyCoursesPage session={session} />}
+          </AuthGate>
+        ) : route === "course" ? (
+          <AuthGate ready={authReady} session={session} onSignIn={signInWithGoogle} isSigningIn={isSigningIn} title="Acceso al contenido">
+            <CoursePage slug={decodeURIComponent(hash.slice("#curso/".length).split(/[/?]/)[0])} />
+          </AuthGate>
+        ) : route === "admin" ? (
+          <AuthGate ready={authReady} session={session} onSignIn={signInWithGoogle} isSigningIn={isSigningIn} title="Panel de administración">
+            {!profileReady ? (
+              <div className="member-page"><div className="member-wrap"><div className="state-box" role="status"><span className="spinner" aria-hidden="true" /> Cargando…</div></div></div>
+            ) : profileFailed ? (
+              <div className="member-page">
+                <div className="member-wrap">
+                  <div className="state-box state-error" role="alert">
+                    <p>No pudimos comprobar tus permisos. Inténtalo de nuevo en unos minutos.</p>
+                    <button className="button button-small button-outline" type="button" onClick={() => setProfileTick((value) => value + 1)}>Reintentar</button>
+                  </div>
+                </div>
+              </div>
+            ) : profile?.role === "admin" ? (
+              session && <AdminPanel tab={adminTabFromHash(hash)} session={session} onSignOut={signOut} />
+            ) : (
+              <div className="member-page">
+                <div className="member-wrap">
+                  <div className="gate-card">
+                    <ShieldCheck size={34} strokeWidth={1.4} aria-hidden="true" />
+                    <h1>Solo para administración</h1>
+                    <p>Tu cuenta no tiene permisos para entrar a esta sección.</p>
+                    <a className="button" href="#mis-cursos">Ver mis cursos y talleres</a>
+                  </div>
+                </div>
+              </div>
+            )}
+          </AuthGate>
         ) : (
           <>
         <section className="hero" id="inicio">
@@ -692,7 +871,11 @@ function App() {
                       <span><BookOpen size={14} /> {course.lessons} clases</span>
                       <span><Clock3 size={14} /> {course.duration}</span>
                     </div>
-                    <button className="course-link" onClick={signInWithGoogle} type="button">
+                    <button
+                      className="course-link"
+                      onClick={() => handleInterest(`Ya iniciaste sesión. Muy pronto podrás inscribirte en «${course.title}».`)}
+                      type="button"
+                    >
                       Me interesa <ArrowRight size={14} />
                     </button>
                   </div>
@@ -722,7 +905,11 @@ function App() {
             <h2>Únete a nuestra comunidad</h2>
             <p>Comparte tu experiencia, haz preguntas, participa en encuentros en directo y forma parte de un espacio seguro y respetuoso.</p>
           </div>
-          <button className="button" onClick={signInWithGoogle} type="button">
+          <button
+            className="button"
+            onClick={() => handleInterest("¡Ya eres parte de Aisha! Pronto te contaremos cómo sumarte a la comunidad.")}
+            type="button"
+          >
             Quiero unirme <ArrowRight size={16} />
           </button>
         </div>
@@ -731,6 +918,7 @@ function App() {
         )}
       </main>
 
+      {!adminShell && (
       <footer className="site-footer">
         <div className="footer-main section-wrap">
           <a className="footer-brand" href="#inicio">
@@ -762,10 +950,13 @@ function App() {
           <span>Explora <b>·</b> Aprende <b>·</b> Transforma</span>
         </div>
       </footer>
+      )}
 
+      {!adminShell && (
       <a className="back-to-top" href="#inicio" aria-label="Volver al inicio">
         <ArrowUp size={17} />
       </a>
+      )}
       <span className="sr-only">{isSupabaseConfigured ? "Supabase conectado" : "Supabase pendiente de configuración"}</span>
     </>
   );

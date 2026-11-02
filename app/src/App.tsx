@@ -23,7 +23,8 @@ import {
 import { checkGoogleSignIn, isSupabaseConfigured, supabase } from "./lib/supabase";
 import { getMyProfile, type Profile } from "./lib/access";
 import { AdminPanel, adminTabFromHash } from "./pages/AdminPanel";
-import { AuthGate, CoursePage, MyCoursesPage } from "./pages/MemberPages";
+import { AuthGate } from "./pages/MemberPages";
+import { PortalApp } from "./portal/PortalApp";
 import { LotusIcon } from "./pages/brand";
 import {
   ContactNotConfiguredError,
@@ -477,14 +478,20 @@ function ContactPage() {
   );
 }
 
-type Route = "home" | "about" | "contact" | "mycourses" | "course" | "admin";
+type Route = "home" | "about" | "contact" | "portal" | "admin";
+
+// Earlier links (#mis-cursos, #curso/<slug>) now live inside Mi espacio.
+function normalizeLegacyHash() {
+  const hash = window.location.hash;
+  if (hash === "#mis-cursos") window.location.replace("#mi-espacio/cursos");
+  else if (hash.startsWith("#curso/")) window.location.replace("#mi-espacio/cursos/" + hash.slice("#curso/".length));
+}
 
 function getRoute(): Route {
   const hash = window.location.hash;
   if (hash === "#conocenos") return "about";
   if (hash === "#contacto") return "contact";
-  if (hash === "#mis-cursos") return "mycourses";
-  if (hash.startsWith("#curso/")) return "course";
+  if (hash === "#mi-espacio" || hash.startsWith("#mi-espacio/")) return "portal";
   if (hash === "#admin" || hash.startsWith("#admin/")) return "admin";
   return "home";
 }
@@ -544,7 +551,7 @@ function UserMenu({ session, isAdmin, onSignOut }: { session: Session; isAdmin: 
       </button>
       {open && (
         <div className="user-menu-panel" role="menu">
-          <a role="menuitem" href="#mis-cursos" onClick={() => setOpen(false)}><GraduationCap size={16} aria-hidden="true" /> Mis cursos y talleres</a>
+          <a role="menuitem" href="#mi-espacio" onClick={() => setOpen(false)}><GraduationCap size={16} aria-hidden="true" /> Mi espacio</a>
           {isAdmin && (
             <a role="menuitem" href="#admin/resumen" onClick={() => setOpen(false)}><ShieldCheck size={16} aria-hidden="true" /> Panel de administración</a>
           )}
@@ -560,7 +567,10 @@ function App() {
   const [authMessage, setAuthMessage] = useState(() => readAuthError() ?? "");
   const [isSigningIn, setIsSigningIn] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [route, setRoute] = useState<Route>(getRoute);
+  const [route, setRoute] = useState<Route>(() => {
+    normalizeLegacyHash();
+    return getRoute();
+  });
   const [hash, setHash] = useState(() => window.location.hash);
   const [authReady, setAuthReady] = useState(!supabase);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -570,6 +580,7 @@ function App() {
 
   useEffect(() => {
     const onHashChange = () => {
+      normalizeLegacyHash();
       setRoute(getRoute());
       setHash(window.location.hash);
     };
@@ -696,7 +707,8 @@ function App() {
   }
 
   // The admin console replaces the public site chrome with its own sidebar and top bar.
-  const adminShell = route === "admin" && profileReady && profile?.role === "admin";
+  const portalShell = route === "portal" && authReady && Boolean(session);
+  const adminShell = (route === "admin" && profileReady && profile?.role === "admin") || portalShell;
 
   async function signOut() {
     if (!supabase) return;
@@ -769,13 +781,17 @@ function App() {
           <AboutPage />
         ) : route === "contact" ? (
           <ContactPage />
-        ) : route === "mycourses" ? (
-          <AuthGate ready={authReady} session={session} onSignIn={signInWithGoogle} isSigningIn={isSigningIn} title="Mis cursos y talleres">
-            {session && <MyCoursesPage session={session} />}
-          </AuthGate>
-        ) : route === "course" ? (
-          <AuthGate ready={authReady} session={session} onSignIn={signInWithGoogle} isSigningIn={isSigningIn} title="Acceso al contenido">
-            <CoursePage slug={decodeURIComponent(hash.slice("#curso/".length).split(/[/?]/)[0])} />
+        ) : route === "portal" ? (
+          <AuthGate ready={authReady} session={session} onSignIn={signInWithGoogle} isSigningIn={isSigningIn} title="Mi espacio Aisha">
+            {session && (
+              <PortalApp
+                session={session}
+                hash={hash}
+                profileName={profile?.full_name ?? null}
+                onNameChange={(name) => setProfile((current) => (current ? { ...current, full_name: name } : current))}
+                onSignOut={signOut}
+              />
+            )}
           </AuthGate>
         ) : route === "admin" ? (
           <AuthGate ready={authReady} session={session} onSignIn={signInWithGoogle} isSigningIn={isSigningIn} title="Panel de administración">
@@ -799,7 +815,7 @@ function App() {
                     <ShieldCheck size={34} strokeWidth={1.4} aria-hidden="true" />
                     <h1>Solo para administración</h1>
                     <p>Tu cuenta no tiene permisos para entrar a esta sección.</p>
-                    <a className="button" href="#mis-cursos">Ver mis cursos y talleres</a>
+                    <a className="button" href="#mi-espacio">Ir a mi espacio</a>
                   </div>
                 </div>
               </div>

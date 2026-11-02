@@ -92,6 +92,9 @@ const SAFE_CODES = new Set(["22023", "P0002", "23514"]);
 function toAccessError(error: { message: string; code?: string }): AccessError {
   if (error.code && SAFE_CODES.has(error.code)) return new AccessError(error.message);
   if (error.code === "42501") return new AccessError("No tienes permiso para realizar esta acción.");
+  if (error.code === "PGRST301" || /jwt|token/i.test(error.message)) {
+    return new AccessError("Tu sesión expiró. Vuelve a iniciar sesión para continuar.");
+  }
   return new AccessError("No pudimos completar la operación. Inténtalo de nuevo en unos minutos.");
 }
 
@@ -101,7 +104,7 @@ export function messageOf(error: unknown): string {
     : "No pudimos completar la operación. Inténtalo de nuevo en unos minutos.";
 }
 
-async function rpc<T>(name: string, args?: Record<string, unknown>): Promise<T> {
+export async function rpc<T>(name: string, args?: Record<string, unknown>): Promise<T> {
   if (!supabase) throw new AccessError("El servicio de cuentas no está configurado.");
   const { data, error } = await supabase.rpc(name, args);
   if (error) throw toAccessError(error);

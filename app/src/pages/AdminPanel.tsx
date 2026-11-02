@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import type { Session } from "@supabase/supabase-js";
-import { BookOpen, CircleX, ExternalLink, Flower2, GraduationCap, History, Home, KeyRound, LayoutGrid, LogOut, Search, SquareCheckBig, Users } from "lucide-react";
+import { BookOpen, CircleX, Flower2, GraduationCap, History, Home, KeyRound, LayoutGrid, Search, SquareCheckBig, Users } from "lucide-react";
 import {
   getDashboardStats,
   getStudentAccess,
@@ -29,7 +29,7 @@ import {
   useDebounced,
   useLoad,
 } from "./access-ui";
-import { LotusIcon } from "./brand";
+import { Avatar, Shell } from "./Shell";
 
 export type AdminTab = "resumen" | "estudiantes" | "cursos" | "accesos" | "historial";
 
@@ -48,19 +48,6 @@ export function adminTabFromHash(hash: string): AdminTab {
   return tabs.some((tab) => tab.id === part) ? (part as AdminTab) : "resumen";
 }
 
-function initials(name: string): string {
-  const parts = name.replace(/@.*/, "").split(/[\s._-]+/).filter(Boolean);
-  return ((parts[0]?.[0] ?? "?") + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase();
-}
-
-function Avatar({ name, src, className }: { name: string; src?: string; className: string }) {
-  return src ? (
-    <img className={className} src={src} alt="" referrerPolicy="no-referrer" />
-  ) : (
-    <span className={`${className} avatar-initials`} aria-hidden="true">{initials(name)}</span>
-  );
-}
-
 export function AdminPanel({ tab, session, onSignOut }: { tab: AdminTab; session: Session; onSignOut: () => void }) {
   const [query, setQuery] = useState("");
   const [seed, setSeed] = useState("");
@@ -75,61 +62,31 @@ export function AdminPanel({ tab, session, onSignOut }: { tab: AdminTab; session
   }
 
   return (
-    <div className="admin-app">
-      <div className="admin-frame">
-        <aside className="admin-side">
-          <a className="admin-brand" href="#admin/resumen" aria-label="Aisha, resumen de administración">
-            <span className="admin-brand-top"><LotusIcon /><strong>Aisha</strong></span>
-            <small>ACADEMIA ONLINE DE MEDIUMNIDAD</small>
-          </a>
-          <nav aria-label="Administración">
-            {tabs.map(({ id, label, icon: Icon }) => (
-              <a key={id} href={`#admin/${id}`} className={tab === id ? "active" : undefined} aria-current={tab === id ? "page" : undefined}>
-                <Icon size={20} strokeWidth={1.7} aria-hidden="true" /> {label}
-              </a>
-            ))}
-          </nav>
-          <div className="admin-user">
-            <div className="admin-user-row">
-              <Avatar name={name} src={avatar} className="admin-avatar" />
-              <div>
-                <strong>Administrador</strong>
-                <span>{session.user.email}</span>
-              </div>
-            </div>
-            <button type="button" onClick={onSignOut}><LogOut size={16} aria-hidden="true" /> Cerrar sesión</button>
-          </div>
-        </aside>
-
-        <div className="admin-body">
-          <header className="admin-topbar">
-            <form className="admin-global-search" role="search" onSubmit={submitSearch}>
-              <label>
-                <span className="sr-only">Buscar estudiantes</span>
-                <Search size={18} aria-hidden="true" />
-                <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar estudiantes por nombre o correo…" />
-              </label>
-            </form>
-            <a className="admin-site-link" href="#inicio"><ExternalLink size={16} aria-hidden="true" /> Ver sitio</a>
-            <div className="admin-me">
-              <Avatar name={name} src={avatar} className="admin-avatar" />
-              <div>
-                <strong>{name}</strong>
-                <span>Administrador</span>
-              </div>
-            </div>
-          </header>
-
-          <div className="admin-content">
-            {tab === "resumen" && <OverviewTab />}
-            {tab === "estudiantes" && <StudentsTab key={seed} initialSearch={seed} />}
-            {tab === "cursos" && <CoursesTab />}
-            {tab === "accesos" && <AccessTab />}
-            {tab === "historial" && <AuditTab />}
-          </div>
-        </div>
-      </div>
-    </div>
+    <Shell
+      brandHref="#admin/resumen"
+      brandLabel="Aisha, resumen de administración"
+      navLabel="Administración"
+      items={tabs.map(({ id, label, icon }) => ({ id, label, icon, href: `#admin/${id}` }))}
+      active={tab}
+      user={{ name, email: session.user.email ?? "", avatar, roleLabel: "Administrador" }}
+      sidebarName="Administrador"
+      onSignOut={onSignOut}
+      topbar={
+        <form className="admin-global-search" role="search" onSubmit={submitSearch}>
+          <label>
+            <span className="sr-only">Buscar estudiantes</span>
+            <Search size={18} aria-hidden="true" />
+            <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar estudiantes por nombre o correo…" />
+          </label>
+        </form>
+      }
+    >
+      {tab === "resumen" && <OverviewTab />}
+      {tab === "estudiantes" && <StudentsTab key={seed} initialSearch={seed} />}
+      {tab === "cursos" && <CoursesTab />}
+      {tab === "accesos" && <AccessTab />}
+      {tab === "historial" && <AuditTab />}
+    </Shell>
   );
 }
 
@@ -248,7 +205,9 @@ function StudentsTab({ initialSearch }: { initialSearch: string }) {
   const [managing, setManaging] = useState<StudentRow | null>(null);
   const debounced = useDebounced(search);
 
-  useEffect(() => setPage(1), [debounced]);
+  useEffect(() => {
+    setPage(1);
+  }, [debounced]);
 
   const list = useLoad(
     () => listStudents({ search: debounced.trim(), limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),
@@ -444,7 +403,9 @@ function CoursesTab() {
   const [viewing, setViewing] = useState<CourseRow | null>(null);
   const debounced = useDebounced(search);
 
-  useEffect(() => setPage(1), [debounced, type, status]);
+  useEffect(() => {
+    setPage(1);
+  }, [debounced, type, status]);
 
   const list = useLoad(
     () => listCourses({ search: debounced.trim(), type, status, limit: PAGE_SIZE, offset: (page - 1) * PAGE_SIZE }),

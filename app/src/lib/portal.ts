@@ -82,6 +82,11 @@ export type LessonContent = {
   storage_path: string | null;
   duration_minutes: number | null;
   is_required: boolean;
+  media_duration_seconds: number | null;
+  media_size_bytes: number | null;
+  media_mime_type: string | null;
+  media_width: number | null;
+  media_height: number | null;
   module_id: string;
   module_title: string;
   course_id: string;
@@ -187,3 +192,9 @@ export const learningStatusLabel: Record<LearningStatus, string> = {
   in_progress: "En progreso",
   completed: "Completado",
 };
+
+export function formatClock(totalSeconds: number): string {
+  const s = Math.max(0, Math.round(totalSeconds));
+  const m = Math.floor(s / 60);
+  return `${m}:${String(s % 60).padStart(2, "0")}`;
+}

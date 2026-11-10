@@ -3,6 +3,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2, Circle, Clock3, Lock, PlayCircle }
 import { messageOf } from "../lib/access";
 import {
   getCourseOutline,
+  formatClock,
   lessonTypeLabel,
   openLesson,
   setLessonCompleted,
@@ -59,7 +60,7 @@ function ModuleList({ outline, current }: { outline: CourseOutline; current?: st
       {outline.modules.map((module, index) => (
         <details key={module.id} open={index === 0 || module.lessons.some((lesson) => lesson.id === current)}>
           <summary>
-            <span>{`Módulo ${index + 1}: ${module.title}`}</span>
+            <span>{/^módulos/i.test(module.title) ? module.title : `Módulo ${index + 1}: ${module.title}`}</span>
             <small>{module.lessons.filter((lesson) => lesson.status === "completed").length}/{module.lessons.length}</small>
           </summary>
           {module.description && <p className="portal-module-desc">{module.description}</p>}
@@ -158,7 +159,22 @@ function LessonMedia({ lesson }: { lesson: LessonContent }) {
         }
         return (
           <LoadState loading={media.loading} error={media.error} onRetry={media.reload} hasData={Boolean(media.data)} empty="El vídeo no está disponible en este momento.">
-            <video className="portal-player" controls preload="metadata" src={media.data ?? undefined} />
+            <div
+              className={`portal-stage${lesson.media_height && lesson.media_width && lesson.media_height > lesson.media_width ? " is-portrait" : ""}`}
+              style={lesson.media_width && lesson.media_height ? { aspectRatio: `${lesson.media_width} / ${lesson.media_height}` } : undefined}
+            >
+              <video
+                className="portal-video-el"
+                controls
+                playsInline
+                preload="metadata"
+                controlsList="nodownload noremoteplayback"
+                disablePictureInPicture
+                onContextMenu={(event) => event.preventDefault()}
+                aria-label={lesson.title}
+                src={media.data ?? undefined}
+              />
+            </div>
           </LoadState>
         );
       })()}
@@ -233,7 +249,11 @@ function LessonView({ outline, lessonId, onProgress }: { outline: CourseOutline;
               <h1>{data.title}</h1>
               <p className="portal-lesson-meta">
                 <span>{lessonTypeLabel[data.content_type]}</span>
-                {data.duration_minutes ? <span><Clock3 size={14} aria-hidden="true" /> {data.duration_minutes} min</span> : null}
+                {data.media_duration_seconds ? (
+                  <span><Clock3 size={14} aria-hidden="true" /> {formatClock(data.media_duration_seconds)}</span>
+                ) : data.duration_minutes ? (
+                  <span><Clock3 size={14} aria-hidden="true" /> {data.duration_minutes} min</span>
+                ) : null}
                 {!data.is_required && <span>Opcional</span>}
               </p>
 

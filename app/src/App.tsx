@@ -75,6 +75,7 @@ const categories = [
     title: "Comunidad y acompañamiento",
     description: "Comparte, pregunta, recibe orientación y crece junto a otros.",
     color: "brown",
+    href: "#comunidad",
   },
 ];
 
@@ -277,6 +278,34 @@ function CommunityPage() {
             ))}
           </div>
         </div>
+      </section>
+    </div>
+  );
+}
+
+function CoursesPage({ onView }: { onView: (title: string) => void }) {
+  return (
+    <div className="courses-page">
+      <section className="courses-hero">
+        <p className="eyebrow">TODOS LOS CURSOS</p>
+        <h1>Encuentra tu próximo paso</h1>
+        <p className="courses-hero-sub">Explora tu sensibilidad, escucha tu intuición y aprende a tu propio ritmo.</p>
+      </section>
+      <section className="courses-list section-wrap" aria-label="Cursos disponibles">
+        {courses.map((course, index) => (
+          <article className="courses-card" key={course.title}>
+            <div className="courses-card-image">
+              <img src={course.image} alt={course.imageAlt} loading={index === 0 ? "eager" : "lazy"} />
+              {index === 0 && <span className="courses-card-tag">Ideal para empezar</span>}
+            </div>
+            <div className="courses-card-body">
+              <h2>{course.title}</h2>
+              <p>{course.description}</p>
+              <p className="courses-card-meta">{course.level} · {course.lessons} clases · {course.duration}</p>
+              <button className="courses-card-button" type="button" onClick={() => onView(course.title)}>Ver curso</button>
+            </div>
+          </article>
+        ))}
       </section>
     </div>
   );
@@ -553,7 +582,7 @@ function ContactPage() {
   );
 }
 
-type Route = "home" | "about" | "community" | "contact" | "portal" | "admin";
+type Route = "home" | "about" | "courses" | "community" | "contact" | "portal" | "admin";
 
 // Earlier links (#mis-cursos, #curso/<slug>) now live inside Mi espacio.
 function normalizeLegacyHash() {
@@ -565,6 +594,7 @@ function normalizeLegacyHash() {
 function getRoute(): Route {
   const hash = window.location.hash;
   if (hash === "#conocenos") return "about";
+  if (hash === "#cursos") return "courses";
   if (hash === "#comunidad") return "community";
   if (hash === "#contacto") return "contact";
   if (hash === "#mi-espacio" || hash.startsWith("#mi-espacio/")) return "portal";
@@ -821,7 +851,7 @@ function App() {
         <nav className={`main-nav${menuOpen ? " is-open" : ""}`} aria-label="Navegación principal">
           <a className={route === "home" ? "active" : undefined} href="#inicio" onClick={() => setMenuOpen(false)}>Inicio</a>
           <a className={route === "about" ? "active" : undefined} href="#conocenos" onClick={() => setMenuOpen(false)}>Conócenos</a>
-          <a href="#cursos" onClick={() => setMenuOpen(false)}>Cursos</a>
+          <a className={route === "courses" ? "active" : undefined} href="#cursos" onClick={() => setMenuOpen(false)}>Cursos</a>
           <a className={route === "community" ? "active" : undefined} href="#comunidad" onClick={() => setMenuOpen(false)}>Comunidad</a>
           <a className={route === "contact" ? "active" : undefined} href="#contacto" onClick={() => setMenuOpen(false)}>Contacto</a>
         </nav>
@@ -855,6 +885,8 @@ function App() {
       <main>
         {route === "about" ? (
           <AboutPage />
+        ) : route === "courses" ? (
+          <CoursesPage onView={(title) => handleInterest(`Ya iniciaste sesión. Tus cursos con acceso están en «Mi espacio». Muy pronto podrás inscribirte en «${title}».`)} />
         ) : route === "community" ? (
           <CommunityPage />
         ) : route === "contact" ? (
@@ -927,18 +959,18 @@ function App() {
             <h2>Un camino completo para tu desarrollo</h2>
           </div>
           <div className="category-grid">
-            {categories.map(({ icon: Icon, title, description, color }) => (
+            {categories.map(({ icon: Icon, title, description, color, href }) => (
               <article className={`category-card ${color}`} key={title}>
                 <span className="category-icon"><Icon size={29} strokeWidth={1.35} /></span>
                 <h3>{title}</h3>
                 <p>{description}</p>
-                <a href="#cursos">Saber más <ArrowRight size={13} /></a>
+                <a href={href ?? "#cursos"}>Saber más <ArrowRight size={13} /></a>
               </article>
             ))}
           </div>
         </section>
 
-        <section className="featured-courses" id="cursos">
+        <section className="featured-courses" id="cursos-destacados">
           <div className="courses-layout section-wrap">
             <div className="courses-intro">
               <p className="eyebrow">Cursos destacados</p>
@@ -947,14 +979,7 @@ function App() {
                 Programas diseñados para acompañarte en cada etapa de tu camino.
                 Desde los primeros pasos hasta un nivel avanzado de desarrollo.
               </p>
-              <a
-                className="button button-dark"
-                href="#catalogo"
-                onClick={(event) => {
-                  event.preventDefault();
-                  document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" });
-                }}
-              >
+              <a className="button button-dark" href="#cursos">
                 Ver todos los cursos <ArrowRight size={16} />
               </a>
             </div>

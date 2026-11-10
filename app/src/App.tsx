@@ -10,6 +10,7 @@ import {
   GraduationCap,
   HandHeart,
   Heart,
+  Instagram,
   Leaf,
   Menu,
   MessageCircle,
@@ -19,6 +20,7 @@ import {
   Sprout,
   UserRound,
   UsersRound,
+  Youtube,
   X,
 } from "lucide-react";
 import { checkGoogleSignIn, isSupabaseConfigured, supabase } from "./lib/supabase";
@@ -135,24 +137,35 @@ function AboutPage() {
           </h1>
           <span className="about-divider" aria-hidden="true" />
           <p>
-            Hay momentos en la vida en los que sentimos que queremos comprendernos mejor,
-            escuchar nuestra intuición y descubrir esa sensibilidad que nos hace únicos.
+            <strong>Hola, soy Aisha. Me alegra que estés aquí.</strong>
           </p>
           <p>
-            <strong>En Aisha, encontrarás un espacio para explorar, aprender y crecer desde el corazón.</strong>{" "}
-            Te acompañamos en el camino de descubrir tu sensibilidad psíquica y acercarte a la
-            mediumnidad a través de cursos, ejercicios prácticos y experiencias de aprendizaje,
-            siempre desde el respeto, la conciencia y el equilibrio.
+            Desde niña vivía experiencias que me costaba explicar. Veía figuras que reconocía como ángeles, personas que habían fallecido y maestros ascendidos. Cuando intenté contárselo a mis padres, se asustaron y dejé de hablar del tema con ellos.
           </p>
-          <a
-            className="button"
-            href="#esencia"
-            onClick={(event) => {
-              event.preventDefault();
-              document.getElementById("esencia")?.scrollIntoView({ behavior: "smooth" });
-            }}
-          >
-            Conoce nuestra esencia <ArrowRight size={16} />
+          <p>
+            Con los años empecé a percibir con más intensidad lo que yo entendía como la energía de otras personas. A veces tenía impresiones sobre situaciones que estaban viviendo o que sentía que podían ocurrir. En ese momento aún no sabía cómo interpretar esas experiencias. Con el tiempo aprendí a reconocer algunas como clarividencia y canalización. Me daba miedo compartir lo que percibía porque podía equivocarme o decir algo que incomodara a alguien.
+          </p>
+          <p>
+            Mi mudanza a Londres marcó un punto de inflexión. Allí decidí explorar mi sensibilidad con más calma y profundidad. Encontré personas que fueron mis maestras y maestros, y que me ayudaron a comprender algo que hoy guía mi práctica. Escuchar mi intuición también implica hacerme preguntas, reconocer mis límites y decidir con cuidado qué compartir.
+          </p>
+          <p>
+            En ese camino aprendí a integrar la luz y la sombra, a reconocer tanto lo que me resulta fácil aceptar de mí como lo que me cuesta mirar. Esa práctica me ayuda a vivir con más coherencia entre lo que siento, lo que digo y lo que hago.
+          </p>
+          <p>
+            Hoy acompaño a personas que desean explorar, desde una mirada espiritual, el vínculo que mantienen con sus seres queridos fallecidos. En algunas sesiones comparto lo que percibo como mensajes de esos seres queridos. Mi práctica también incluye la canalización de mensajes que asocio con los ángeles y con quienes llamo hermanos de las estrellas.
+          </p>
+          <h2 className="about-subtitle">¿Por qué creé la Academia Aisha?</h2>
+          <p>
+            Creé esta academia para ofrecer el espacio que me habría gustado encontrar cuando empecé a hacerme preguntas sobre mi sensibilidad. Aquí puedes aprender los fundamentos de la mediumnidad, explorar tu percepción con ejercicios guiados y practicar cómo escuchar tu intuición cuando el ruido mental dificulta distinguir lo que sientes.
+          </p>
+          <p>
+            A lo largo de los cursos trabajamos el discernimiento, la ética y los límites personales. Son herramientas para explorar estas experiencias con respeto y llevar lo que aprendes a tu vida cotidiana.
+          </p>
+          <p>
+            <strong>Puedes empezar por una pregunta, una práctica o la curiosidad que te trajo hasta aquí. En Aisha, puedes avanzar a tu propio ritmo.</strong>
+          </p>
+          <a className="button" href="#cursos">
+            Conoce nuestros cursos <ArrowRight size={16} />
           </a>
         </div>
       </section>
@@ -213,6 +226,59 @@ function LeafDivider({ className }: { className?: string }) {
     <span className={`leaf-divider${className ? ` ${className}` : ""}`} aria-hidden="true">
       <Leaf size={18} strokeWidth={1.3} />
     </span>
+  );
+}
+
+const TELEGRAM_URL = (import.meta.env.VITE_TELEGRAM_URL as string | undefined)?.trim() || "https://t.me/+-tRyfxE_UMlmYmY0";
+
+function CommunityPage() {
+  const [notice, setNotice] = useState(false);
+  const networks = [
+    { name: "Instagram", note: "Reflexiones y novedades", href: "https://www.instagram.com/diosa_aisha/", icon: <Instagram size={34} strokeWidth={1.6} /> },
+    { name: "YouTube", note: "Videos guiados", href: "https://youtube.com/@diosa_aisha?si=vppX1qKN-0VMe3i4", icon: <Youtube size={38} strokeWidth={1.6} /> },
+    {
+      name: "TikTok",
+      note: "Prácticas cortas",
+      href: "https://www.tiktok.com/@aisha_diosa?_r=1&_t=ZG-9BIHHNIgnuS",
+      icon: (
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor" aria-hidden="true">
+          <path d="M19.6 6.7a5.2 5.2 0 0 1-3.2-1.1A5.2 5.2 0 0 1 14.6 2h-3.3v13.1a2.7 2.7 0 1 1-2.7-2.7c.3 0 .5 0 .8.1V9.1a6 6 0 1 0 5.2 5.9V8.8a8.4 8.4 0 0 0 4.9 1.6V7a5 5 0 0 1-.1-.3z" />
+        </svg>
+      ),
+    },
+  ];
+  return (
+    <div className="community-page">
+      <section className="community-hero">
+        <div className="community-hero-copy">
+          <p className="eyebrow">ACADEMIA AISHA</p>
+          <h1>Únete a la comunidad Aisha</h1>
+          <p className="community-hero-lead">Un espacio para seguir creciendo en compañía</p>
+          <p className="community-hero-text">
+            Explorar tu sensibilidad y escuchar tu intuición puede abrir muchas preguntas. En la comunidad Aisha encontrarás reflexiones, pequeñas prácticas y novedades de la academia para acompañarte en ese camino, a tu propio ritmo.
+          </p>
+          {TELEGRAM_URL ? (
+            <a className="community-cta" href={TELEGRAM_URL} target="_blank" rel="noopener noreferrer">
+              <Send size={26} aria-hidden="true" /> Unirme a la comunidad en Telegram
+            </a>
+          ) : (
+            <button className="community-cta" type="button" onClick={() => setNotice(true)}>
+              <Send size={26} aria-hidden="true" /> Unirme a la comunidad en Telegram
+            </button>
+          )}
+          {notice && <p className="community-notice" role="status">Muy pronto compartiremos aquí el enlace a la comunidad en Telegram. Mientras tanto, síguenos en nuestras redes.</p>}
+          <p className="community-also">También puedes encontrarnos en</p>
+          <div className="community-networks">
+            {networks.map((n) => (
+              <a key={n.name} className="community-network" href={n.href} target="_blank" rel="noopener noreferrer" aria-label={n.name}>
+                <span className="community-network-icon">{n.icon}</span>
+                <span><strong>{n.name}</strong><small>{n.note}</small></span>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -487,7 +553,7 @@ function ContactPage() {
   );
 }
 
-type Route = "home" | "about" | "contact" | "portal" | "admin";
+type Route = "home" | "about" | "community" | "contact" | "portal" | "admin";
 
 // Earlier links (#mis-cursos, #curso/<slug>) now live inside Mi espacio.
 function normalizeLegacyHash() {
@@ -499,6 +565,7 @@ function normalizeLegacyHash() {
 function getRoute(): Route {
   const hash = window.location.hash;
   if (hash === "#conocenos") return "about";
+  if (hash === "#comunidad") return "community";
   if (hash === "#contacto") return "contact";
   if (hash === "#mi-espacio" || hash.startsWith("#mi-espacio/")) return "portal";
   if (hash === "#admin" || hash.startsWith("#admin/")) return "admin";
@@ -755,7 +822,7 @@ function App() {
           <a className={route === "home" ? "active" : undefined} href="#inicio" onClick={() => setMenuOpen(false)}>Inicio</a>
           <a className={route === "about" ? "active" : undefined} href="#conocenos" onClick={() => setMenuOpen(false)}>Conócenos</a>
           <a href="#cursos" onClick={() => setMenuOpen(false)}>Cursos</a>
-          <a href="#comunidad" onClick={() => setMenuOpen(false)}>Comunidad</a>
+          <a className={route === "community" ? "active" : undefined} href="#comunidad" onClick={() => setMenuOpen(false)}>Comunidad</a>
           <a className={route === "contact" ? "active" : undefined} href="#contacto" onClick={() => setMenuOpen(false)}>Contacto</a>
         </nav>
 
@@ -788,6 +855,8 @@ function App() {
       <main>
         {route === "about" ? (
           <AboutPage />
+        ) : route === "community" ? (
+          <CommunityPage />
         ) : route === "contact" ? (
           <ContactPage />
         ) : route === "portal" ? (
@@ -878,7 +947,14 @@ function App() {
                 Programas diseñados para acompañarte en cada etapa de tu camino.
                 Desde los primeros pasos hasta un nivel avanzado de desarrollo.
               </p>
-              <a className="button button-dark" href="#catalogo">
+              <a
+                className="button button-dark"
+                href="#catalogo"
+                onClick={(event) => {
+                  event.preventDefault();
+                  document.getElementById("catalogo")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+              >
                 Ver todos los cursos <ArrowRight size={16} />
               </a>
             </div>
@@ -930,13 +1006,9 @@ function App() {
             <h2>Únete a nuestra comunidad</h2>
             <p>Comparte tu experiencia, haz preguntas, participa en encuentros en directo y forma parte de un espacio seguro y respetuoso.</p>
           </div>
-          <button
-            className="button"
-            onClick={() => handleInterest("¡Ya eres parte de Aisha! Pronto te contaremos cómo sumarte a la comunidad.")}
-            type="button"
-          >
+          <a className="button" href="#comunidad">
             Quiero unirme <ArrowRight size={16} />
-          </button>
+          </a>
         </div>
         </section>
           </>
@@ -965,7 +1037,11 @@ function App() {
               <a href="https://www.instagram.com/diosa_aisha/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">ig</a>
               <a href="https://facebook.com" aria-label="Facebook">f</a>
               <a href="https://youtube.com/@diosa_aisha?si=vppX1qKN-0VMe3i4" target="_blank" rel="noopener noreferrer" aria-label="YouTube">▶</a>
-              <a href="https://pinterest.com" aria-label="Pinterest">p</a>
+              <a href="https://www.tiktok.com/@aisha_diosa?_r=1&_t=ZG-9BIHHNIgnuS" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+                  <path d="M19.6 6.7a5.2 5.2 0 0 1-3.2-1.1A5.2 5.2 0 0 1 14.6 2h-3.3v13.1a2.7 2.7 0 1 1-2.7-2.7c.3 0 .5 0 .8.1V9.1a6 6 0 1 0 5.2 5.9V8.8a8.4 8.4 0 0 0 4.9 1.6V7a5 5 0 0 1-.1-.3z" />
+                </svg>
+              </a>
             </div>
           </div>
         </div>
